@@ -1,0 +1,119 @@
+.grid {
+  display: grid;
+}
+
+.grid-cols-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.col-span-2 {
+  grid-column: span 2 / span 2;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.gap-6 {
+  gap: 1.5rem;
+}
+
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+.text-medium {
+  color: var(--text-medium);
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+
+.bg-yellow-50 {
+  background-color: #fffbeb;
+}
+
+.border-yellow-200 {
+  border-color: #fde68a;
+}
+
+.text-yellow-800 {
+  color: #92400e;
+}
+
+.bg-blue-50 {
+  background-color: #eff6ff;
+}
+
+.border-blue-200 {
+  border-color: #bfdbfe;
+}
+
+.text-blue-800 {
+  color: #1e40af;
+}
+
+.bg-green-50 {
+  background-color: #ecfdf5;
+}
+
+.border-green-200 {
+  border-color: #a7f3d0;
+}
+
+.text-green-800 {
+  color: #065f46;
+}
+
+.bg-gray-50 {
+  background-color: #f9fafb;
+}
+
+.hover\:bg-gray-50:hover {
+  background-color: #f9fafb;
+}
+
+.border-b {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.last\:border-0:last-child {
+  border-bottom: 0;
+}
+
+.text-primary {
+  color: var(--primary-hover);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25em 0.6em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+}
+
+.bg-green-100 {
+  background-color: #d1fae5;
+}
+
+.quick-actions {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quick-actions:hover {
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.4);
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
+}

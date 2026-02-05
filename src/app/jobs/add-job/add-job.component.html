@@ -1,0 +1,87 @@
+<div class="container p-4">
+  <div class="mb-4">
+    <a routerLink="/jobs" class="text-medium hover:underline text-sm">Cancel</a>
+  </div>
+
+  <div class="card max-w-2xl mx-auto">
+    <h2 class="mb-6 border-b pb-2">{{ isEditMode ? 'Edit Job' : 'Add New Job' }}</h2>
+
+    <form [formGroup]="jobForm" (ngSubmit)="onSubmit()">
+      <div class="grid grid-cols-2 gap-4">
+
+        <div class="form-group col-span-2">
+          <label class="form-label">Job Title *</label>
+          <input type="text" formControlName="title" class="form-control" placeholder="e.g. Senior Frontend Engineer">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Job Code *</label>
+          <input type="text" formControlName="jobCode" class="form-control" placeholder="e.g. FE-101">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Company Name *</label>
+          <input type="text" formControlName="companyName" class="form-control" placeholder="e.g. Acme Corp">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Location *</label>
+          <input type="text" formControlName="location" class="form-control" placeholder="e.g. Remote, New York">
+        </div>
+
+        <div class="form-group col-span-2">
+          <label class="form-label">Experience (Years) *</label>
+          <div class="flex gap-4">
+            <input type="number" formControlName="minExperience" class="form-control" placeholder="Min (e.g. 3)">
+            <input type="number" formControlName="maxExperience" class="form-control" placeholder="Max (e.g. 5)">
+          </div>
+        </div>
+
+        <div class="form-group col-span-2">
+          <label class="form-label">Salary Range (Optional)</label>
+          <div class="flex gap-4">
+            <input type="number" formControlName="minSalary" class="form-control" placeholder="Min Salary">
+            <input type="number" formControlName="maxSalary" class="form-control" placeholder="Max Salary">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cooldown Period (Days)</label>
+          <input type="number" formControlName="cooldownPeriod" class="form-control" placeholder="e.g. 180">
+        </div>
+
+        <div class="form-group col-span-2">
+          <label class="form-label">Job Description *</label>
+          <textarea formControlName="description" class="form-control" rows="6"
+            placeholder="Enter detailed job description..."></textarea>
+        </div>
+
+      </div>
+
+      <div class="card mt-6 p-4 bg-gray-50 border border-gray-200">
+        <h3 class="text-lg font-semibold mb-2">Sourcing Tracker Format (Optional)</h3>
+        <p class="text-sm text-gray-500 mb-4">Upload an Excel file to define custom fields for this job's candidates. We
+          will use the headers from the first row.</p>
+
+        <input type="file" (change)="onFileChange($event)" accept=".xlsx, .xls" class="form-control mb-4">
+
+        <div *ngIf="customFields.length > 0">
+          <h4 class="font-bold text-sm mb-2">Detected Fields:</h4>
+          <div class="flex flex-wrap gap-2">
+            <span *ngFor="let field of customFields" class="badge bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+              {{ field }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-4 mt-6 border-t pt-4">
+        <button type="button" routerLink="/jobs" class="btn btn-outline">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="jobForm.invalid">
+          {{ isEditMode ? 'Update Job' : 'Create Job' }}
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>

@@ -1,0 +1,145 @@
+<div class="container p-4" *ngIf="job$ | async as job; else notFound">
+  <div class="mb-4">
+    <a routerLink="/jobs" class="text-medium hover:underline text-sm">← Back to Jobs</a>
+  </div>
+
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h1 class="text-2xl mb-1">{{ job.title }}</h1>
+      <div class="text-medium text-lg">{{ job.companyName }} • {{ job.location }}</div>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-outline" routerLink="/jobs/edit/{{job.id}}">Edit Job</button>
+      <button class="btn btn-primary" routerLink="/add-candidate" [queryParams]="{ jobId: job.id }">Add
+        Candidate</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 gap-6">
+    <div class="col-span-2">
+      <div class="card mb-6">
+        <h3 class="mb-4 border-b pb-2">Job Description</h3>
+        <p class="whitespace-pre-line text-medium">{{ job.description }}</p>
+
+        <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span class="block font-bold mb-1">Experience Range</span>
+            <span class="text-medium">{{ job.minExperience }} - {{ job.maxExperience }} Years</span>
+          </div>
+          <div *ngIf="job.minSalary || job.maxSalary">
+            <span class="block font-bold mb-1">Salary Range</span>
+            <span class="text-medium">{{ job.minSalary || 0 }} - {{ job.maxSalary || 'Unlimited' }}</span>
+          </div>
+          <div *ngIf="job.cooldownPeriod">
+            <span class="block font-bold mb-1">Cooldown Period</span>
+            <span class="text-medium">{{ job.cooldownPeriod }} Days</span>
+          </div>
+          <div>
+            <span class="block font-bold mb-1">Job Code</span>
+            <span class="text-medium">{{ job.jobCode }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="flex justify-between items-center mb-4 border-b pb-2">
+          <h3 class="m-0">Candidates</h3>
+          <div class="flex gap-2">
+            <button class="btn btn-sm btn-outline" (click)="exportToExcel()">Export to Excel</button>
+          </div>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Status</th>
+              <th>Experience</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let candidate of candidates$ | async">
+              <td>
+                <div class="font-bold">{{ candidate.fullName }}</div>
+                <div class="text-sm text-medium">{{ candidate.email }}</div>
+              </td>
+              <td>
+                <div *ngIf="editingCandidateId === candidate.id">
+                  <select [(ngModel)]="tempStatus" class="form-control text-xs py-1 px-2 h-auto w-auto">
+                    <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+                  </select>
+                </div>
+                <div *ngIf="editingCandidateId !== candidate.id">
+                  <span class="badge" [ngClass]="'status-' + candidate.status.toLowerCase().replace(' ', '-')">
+                    {{ candidate.status }}
+                  </span>
+                </div>
+              </td>
+              <td>{{ candidate.totalExperience }}</td>
+              <td>
+                <div *ngIf="editingCandidateId === candidate.id" class="flex gap-2 items-center">
+                  <button (click)="saveStatus(candidate)" class="btn btn-icon btn-sm text-green-600 hover:bg-green-50"
+                    title="Save">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                  </button>
+                  <a [routerLink]="['/candidates/edit', candidate.id]"
+                    class="btn btn-sm btn-outline text-xs px-2 py-1">Edit Profile</a>
+                  <button (click)="cancelEditing()" class="btn btn-icon btn-sm text-gray-500 hover:bg-gray-100"
+                    title="Cancel">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+                <div *ngIf="editingCandidateId !== candidate.id">
+                  <button (click)="startEditing(candidate)" class="btn btn-icon btn-sm btn-ghost" title="Edit Status">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="(candidates$ | async)?.length === 0" class="p-4 text-center text-medium">
+          No candidates added to this job yet.
+        </div>
+      </div>
+    </div>
+
+    <div class="col-span-1">
+      <div class="card">
+        <h3 class="mb-4">Job Status</h3>
+        <div class="flex items-center gap-2 mb-4">
+          <select [ngModel]="job.status" (ngModelChange)="updateStatus(job, $event)"
+            class="form-control text-sm w-auto">
+            <option value="Open">Open</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+        <div class="text-sm text-medium">
+          Created on {{ job.createdDate | date:'mediumDate' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #notFound>
+  <div class="container p-4 text-center">
+    <h2>Job Not Found</h2>
+    <a routerLink="/jobs" class="btn btn-primary mt-4">Back to Jobs</a>
+  </div>
+</ng-template>

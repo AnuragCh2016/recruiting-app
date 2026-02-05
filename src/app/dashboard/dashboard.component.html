@@ -1,0 +1,84 @@
+<div class="container p-4">
+  <h1 class="mb-6">Dashboard</h1>
+
+  <!-- Metrics Grid -->
+  <div class="grid grid-cols-5 gap-4 mb-8" *ngIf="metrics$ | async as metrics">
+    <div class="quick-actions card p-4 text-center cursor-pointer hover:shadow-md transition-shadow" routerLink="/jobs">
+      <div class="text-3xl font-bold mb-1">{{ metrics.totalJobs }}</div>
+      <div class="text-medium text-sm">Active Jobs</div>
+    </div>
+    <div class="quick-actions card p-4 text-center cursor-pointer hover:shadow-md transition-shadow"
+      routerLink="/candidates">
+      <div class="text-3xl font-bold mb-1">{{ metrics.totalCandidates }}</div>
+      <div class="text-medium text-sm">Total Candidates</div>
+    </div>
+    <div
+      class="quick-actions card p-4 text-center bg-yellow-50 border-yellow-200 cursor-pointer hover:shadow-md transition-shadow"
+      [routerLink]="['/candidates']" [queryParams]="{ status: 'Shortlisted' }">
+      <div class="text-3xl font-bold mb-1 text-yellow-800">{{ metrics.shortlisted }}</div>
+      <div class="text-medium text-sm text-yellow-800">Shortlisted</div>
+    </div>
+    <div
+      class="quick-actions card p-4 text-center bg-blue-50 border-blue-200 cursor-pointer hover:shadow-md transition-shadow"
+      [routerLink]="['/candidates']" [queryParams]="{ status: 'In Process' }">
+      <div class="text-3xl font-bold mb-1 text-blue-800">{{ metrics.inProcess }}</div>
+      <div class="text-medium text-sm text-blue-800">In Process</div>
+    </div>
+    <div
+      class="quick-actions card p-4 text-center bg-green-50 border-green-200 cursor-pointer hover:shadow-md transition-shadow"
+      [routerLink]="['/candidates']" [queryParams]="{ status: 'Hired' }">
+      <div class="text-3xl font-bold mb-1 text-green-800">{{ metrics.hired }}</div>
+      <div class="text-medium text-sm text-green-800">Hired</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 10px;" class="grid grid-cols-2 gap-6">
+    <!-- Quick Actions -->
+    <div class="card p-4 col-span-2 flex gap-4 items-center bg-gray-50">
+      <span class="font-bold">Quick Actions:</span>
+      <a routerLink="/add-job" class="btn btn-primary">+ Add Job</a>
+      <a routerLink="/add-candidate" class="btn btn-primary">+ Add Candidate</a>
+    </div>
+
+    <!-- Recent Jobs -->
+    <div class="card p-0">
+      <div class="p-4 border-b flex justify-between items-center">
+        <h3>Recent Jobs</h3>
+        <a routerLink="/jobs" class="text-sm text-primary hover:underline">View All</a>
+      </div>
+      <div class="p-2">
+        <div *ngFor="let job of recentJobs$ | async"
+          class="p-2 border-b last:border-0 hover:bg-gray-50 flex justify-between items-center">
+          <div>
+            <div class="font-bold">
+              <a [routerLink]="['/jobs', job.id]" class="hover:underline">{{ job.title }}</a>
+            </div>
+            <div class="text-xs text-medium">{{ job.companyName }}</div>
+          </div>
+          <span class="badge" [ngClass]="{'bg-green-100 text-green-800': job.status === 'Open'}">{{ job.status }}</span>
+        </div>
+        <div *ngIf="(recentJobs$ | async)?.length === 0" class="p-4 text-center text-medium text-sm">No jobs yet.</div>
+      </div>
+    </div>
+
+    <!-- Recent Candidates -->
+    <div class="card p-0">
+      <div class="p-4 border-b flex justify-between items-center">
+        <h3>Recent Candidates</h3>
+        <a routerLink="/candidates" class="text-sm text-primary hover:underline">View All</a>
+      </div>
+      <div class="p-2">
+        <div *ngFor="let candidate of recentCandidates$ | async" [routerLink]="['/candidates/edit', candidate.id]"
+          class="p-2 border-b last:border-0 hover:bg-gray-50 flex justify-between items-center cursor-pointer">
+          <div>
+            <div class="font-bold">{{ candidate.fullName }}</div>
+            <div class="text-xs text-medium">{{ candidate.email }}</div>
+          </div>
+          <span class="text-xs text-medium">{{ candidate.createdDate | date:'shortDate' }}</span>
+        </div>
+        <div *ngIf="(recentCandidates$ | async)?.length === 0" class="p-4 text-center text-medium text-sm">No candidates
+          yet.</div>
+      </div>
+    </div>
+  </div>
+</div>

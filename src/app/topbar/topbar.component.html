@@ -1,0 +1,40 @@
+<div class="topbar h-16 bg-white border-b flex items-center px-6 fixed w-full z-10 gap-8">
+  <div class="logo font-bold text-xl flex items-center gap-2">
+    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">TM</div>
+    TalentMason
+  </div>
+
+  <nav class="flex gap-12 text-sm font-medium">
+    <a routerLink="/dashboard" routerLinkActive="text-primary" class="hover:text-primary">Dashboard</a>
+    <a routerLink="/jobs" routerLinkActive="text-primary" class="hover:text-primary">Jobs</a>
+    <a routerLink="/candidates" routerLinkActive="text-primary" class="hover:text-primary">Candidates</a>
+  </nav>
+
+  <div class="flex-1 max-w-lg relative">
+    <input type="text" [(ngModel)]="searchQuery" (input)="onSearch()" (blur)="closeSearch()"
+      placeholder="Search jobs, candidates..."
+      class="w-full bg-gray-100 border-none rounded-md px-4 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none">
+
+    <!-- Search Results Dropdown -->
+    <div *ngIf="showResults && searchQuery"
+      class="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg mt-1 overflow-hidden z-20">
+      <div *ngFor="let result of searchResults" (click)="selectResult(result)"
+        class="p-3 border-b last:border-0 hover:bg-gray-50 cursor-pointer flex justify-between items-center bg-white">
+        <div>
+          <div class="font-bold text-sm">{{ result.name }}</div>
+          <div class="text-xs text-medium">{{ result.detail }}</div>
+        </div>
+        <span class="badge text-xs">{{ result.type }}</span>
+      </div>
+      <div *ngIf="searchResults.length === 0" class="p-4 text-center text-medium text-sm">
+        No results found.
+      </div>
+    </div>
+  </div>
+
+  <div class="user-profile flex items-center gap-3 ml-auto">
+    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold">AD</div>
+    <span class="text-sm font-medium">Admin</span>
+  </div>
+</div>
+<div class="h-16"></div> <!-- Spacer -->

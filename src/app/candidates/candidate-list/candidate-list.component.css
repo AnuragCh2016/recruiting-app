@@ -1,0 +1,47 @@
+.badge {
+  display: inline-block;
+  padding: 0.25em 0.6em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+/* Status Colors */
+.status-sourced {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.status-shortlisted {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.status-in-process {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.status-hired {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.status-rejected {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.text-primary {
+  color: var(--primary-color);
+}
+
+.text-medium {
+  color: var(--text-medium);
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}

@@ -1,0 +1,14 @@
+1. for candidates, phone number, exp, relevant exp, ctc, ectc, np, location, notes as a textarea -- rejected because something, interview feedback etc
+(any relevant details)
+2. for jobs, company, job code, JD etc
+
+3. look into file upload options. aws?
+
+4. design database schema for candidates and jobs
+5. dashboard for recruiters to view candidates and jobs
+6. search and filter functionality for candidates and jobs
+7. user authentication and authorization for recruiters
+-------------------------- basic mvp ---------------------------
+8. look into notification options. email? sms?
+9. admin dashboard for managing recruiters and overseeing activities
+
