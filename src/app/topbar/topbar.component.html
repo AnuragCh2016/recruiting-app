@@ -1,40 +1,108 @@
-<div class="topbar h-16 bg-white border-b flex items-center px-6 fixed w-full z-10 gap-8">
+<div
+  class="topbar h-16 bg-white border-b flex items-center px-6 fixed w-full z-10 gap-8"
+>
   <div class="logo font-bold text-xl flex items-center gap-2">
-    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">TM</div>
+    <div
+      class="logo-badge w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white"
+    >
+      TM
+    </div>
     TalentMason
   </div>
 
   <nav class="flex gap-12 text-sm font-medium">
-    <a routerLink="/dashboard" routerLinkActive="text-primary" class="hover:text-primary">Dashboard</a>
-    <a routerLink="/jobs" routerLinkActive="text-primary" class="hover:text-primary">Jobs</a>
-    <a routerLink="/candidates" routerLinkActive="text-primary" class="hover:text-primary">Candidates</a>
+    <a
+      routerLink="/dashboard"
+      routerLinkActive="text-primary"
+      class="hover:text-primary transition-colors"
+      >Dashboard</a
+    >
+    <a
+      routerLink="/jobs"
+      routerLinkActive="text-primary"
+      class="hover:text-primary transition-colors"
+      >Jobs</a
+    >
+    <a
+      routerLink="/candidates"
+      routerLinkActive="text-primary"
+      class="hover:text-primary transition-colors"
+      >Candidates</a
+    >
   </nav>
 
-  <div class="flex-1 max-w-lg relative">
-    <input type="text" [(ngModel)]="searchQuery" (input)="onSearch()" (blur)="closeSearch()"
-      placeholder="Search jobs, candidates..."
-      class="w-full bg-gray-100 border-none rounded-md px-4 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none">
+  <div
+    class="flex-1 max-w-lg relative flex items-center bg-gray-100 rounded-md border border-transparent focus-within:border-primary focus-within:bg-white transition-all"
+  >
+    <select
+      [(ngModel)]="searchType"
+      (change)="onInputChange()"
+      class="bg-transparent text-[10px] font-bold uppercase tracking-wider px-2 py-2 border-r border-gray-300 focus:outline-none cursor-pointer text-gray-500"
+    >
+      <option value="All">All</option>
+      <option value="Jobs">Jobs</option>
+      <option value="Candidates">Candidates</option>
+    </select>
 
-    <!-- Search Results Dropdown -->
-    <div *ngIf="showResults && searchQuery"
-      class="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg mt-1 overflow-hidden z-20">
-      <div *ngFor="let result of searchResults" (click)="selectResult(result)"
-        class="p-3 border-b last:border-0 hover:bg-gray-50 cursor-pointer flex justify-between items-center bg-white">
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      (input)="onInputChange()"
+      (blur)="closeSearch()"
+      placeholder="Search {{ searchType.toLowerCase() }}..."
+      class="w-full bg-transparent border-none px-4 py-2 text-sm focus:ring-0 focus:outline-none"
+    />
+
+    <div
+      *ngIf="showResults && searchQuery.length >= 2"
+      class="search-results-panel absolute top-full left-0 w-full bg-white border rounded-md shadow-lg mt-1 overflow-y-auto max-h-[400px] z-20"
+    >
+      <div
+        *ngFor="let result of searchResults"
+        (mousedown)="selectResult(result)"
+        class="p-3 border-b last:border-0 hover:bg-gray-50 cursor-pointer flex justify-between items-center bg-white"
+      >
         <div>
           <div class="font-bold text-sm">{{ result.name }}</div>
-          <div class="text-xs text-medium">{{ result.detail }}</div>
+          <div class="text-xs text-gray-500">{{ result.detail }}</div>
         </div>
-        <span class="badge text-xs">{{ result.type }}</span>
+        <span
+          class="badge text-[10px] uppercase font-bold px-2 py-0.5 rounded"
+          [ngClass]="
+            result.type === 'Job'
+              ? 'bg-blue-100 text-blue-700'
+              : 'bg-green-100 text-green-700'
+          "
+        >
+          {{ result.type }}
+        </span>
       </div>
-      <div *ngIf="searchResults.length === 0" class="p-4 text-center text-medium text-sm">
+
+      <button
+        *ngIf="canLoadMore && !isSearching"
+        (mousedown)="loadMore($event)"
+        class="w-full p-2 text-[11px] font-bold text-primary hover:bg-gray-50 border-t transition-colors"
+      >
+        LOAD MORE RESULTS
+      </button>
+
+      <div
+        *ngIf="searchResults.length === 0 && !isSearching"
+        class="p-4 text-center text-gray-400 text-sm"
+      >
         No results found.
       </div>
     </div>
   </div>
 
   <div class="user-profile flex items-center gap-3 ml-auto">
-    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold">AD</div>
-    <span class="text-sm font-medium">Admin</span>
+    <div
+      class="user-avatar w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold"
+    >
+      {{ initials }}
+    </div>
+    <span class="text-sm font-medium">{{ currentUser?.role || "User" }}</span>
+    <button class="btn btn-outline btn-sm" (click)="logout()">Logout</button>
   </div>
 </div>
-<div class="h-16"></div> <!-- Spacer -->
+<div class="h-16"></div>

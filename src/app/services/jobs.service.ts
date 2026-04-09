@@ -1,77 +1,96 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { Job } from '../models';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
+import {
+  APIResponse,
+  Job,
+  JobReadWithApplications,
+  JobReadWithCount,
+} from '../models';
+import { environment } from '../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class JobsService {
-  private jobs: Job[] = [
-    { 
-      id: 1, 
-      jobCode: 'FE-001',
-      title: 'Senior Frontend Developer', 
-      companyName: 'Tech Corp',
-      description: 'We are looking for an experienced Angular developer.', 
-      location: 'New York, NY',
-      minExperience: 5,
-      maxExperience: 7,
-      minSalary: 120000,
-      maxSalary: 150000,
-      status: 'Open',
-      createdDate: new Date('2023-10-01'),
-      candidateCount: 2
-    },
-    { 
-      id: 2, 
-      jobCode: 'BE-002',
-      title: 'Backend Node.js Developer', 
-      companyName: 'Tech Corp',
-      description: 'Join our backend team building scalable APIs.', 
-      location: 'Remote',
-      minExperience: 3,
-      maxExperience: 5,
-      cooldownPeriod: 90,
-      status: 'Open',
-      createdDate: new Date('2023-10-05'),
-      candidateCount: 1
-    },
-  ];
+  private http = inject(HttpClient); // Modern Angular inject pattern
+  private readonly apiBaseUrl = `${environment.apiUrl}/jobs`;
 
-  jobs$ = new BehaviorSubject<Job[]>(this.jobs);
+  // We keep the BehaviorSubject to act as a local cache
+  private jobsSubject = new BehaviorSubject<Job[]>([]);
+  jobs$ = this.jobsSubject.asObservable();
 
-  constructor() { }
-
-  getJob(id: number): Job | undefined {
-    return this.jobs.find(j => j.id === id);
+  constructor() {
+    // Removed loadJobsIntoCache from constructor to avoid loading before auth
   }
 
-  addJob(job: Partial<Job>) {
-    const newJob: Job = {
-      ...job,
-      id: this.jobs.length + 1,
-      createdDate: new Date(),
-      status: 'Open',
-      candidateCount: 0
-    } as Job;
-    
-    this.jobs.push(newJob);
-    this.jobs$.next([...this.jobs]);
+  /**
+   * GET all jobs and update the local stream
+   */
+  refreshJobs(): Observable<JobReadWithCount[]> {
+    return this.http
+      .get<JobReadWithCount[]>(this.apiBaseUrl)
+      .pipe(tap((jobs) => this.jobsSubject.next(jobs as unknown as Job[])));
   }
 
-  updateJob(updatedJob: Job) {
-    const index = this.jobs.findIndex(j => j.id === updatedJob.id);
-    if (index !== -1) {
-      this.jobs[index] = updatedJob;
-      this.jobs$.next([...this.jobs]);
-    }
+  /**
+   * GET a single job by ID from the API
+   */
+  getJob(id: number): Observable<JobReadWithApplications> {
+    return this.http.get<JobReadWithApplications>(`${this.apiBaseUrl}/${id}`);
   }
 
-  updateCandidateCount(jobId: number, count: number) {
-    const job = this.jobs.find(j => j.id === jobId);
-    if (job) {
-      job.candidateCount = count;
-      this.jobs$.next([...this.jobs]);
-    }
+  /**
+   * POST a new job to FastAPI
+   */
+  addJob(job: Partial<Job>): Observable<APIResponse> {
+    return this.http.post<APIResponse>(this.apiBaseUrl, job).pipe(
+      tap(() => this.loadJobsIntoCache()), // Automatically refresh the list after adding
+    );
+  }
+
+  /**
+   * PUT (Update) an existing job
+   */
+  updateJob(updatedJob: Job): Observable<Job> {
+    return this.http
+      .put<Job>(`${this.apiBaseUrl}/${updatedJob.id}`, updatedJob)
+      .pipe(
+        tap(() => this.loadJobsIntoCache()), // Refresh list to show updated data
+      );
+  }
+
+  /**
+   * PATCH a specific field (like candidate count)
+   */
+  updateCandidateCount(jobId: number, count: number): Observable<Job> {
+    // Assuming your FastAPI has a /jobs/{id}/candidate-count endpoint
+    return this.http
+      .patch<Job>(`${this.apiBaseUrl}/${jobId}/candidate-count`, { count })
+      .pipe(tap(() => this.loadJobsIntoCache()));
+  }
+
+  private loadJobsIntoCache(): void {
+    this.refreshJobs().subscribe({
+      error: (err) => console.error('Failed to load jobs', err),
+    });
+  }
+
+  get currentJobsValue(): Job[] {
+    return this.jobsSubject.value;
+  }
+
+  /**
+   * Uploads a JD file for a specific job ID
+   * Matches FastAPI: @router.post("/upload-jd/{job_id}")
+   */
+  uploadJd(jobId: number, file: File): Observable<APIResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<APIResponse>(
+      `${this.apiBaseUrl}/upload-jd/${jobId}`,
+      formData,
+    );
   }
 }

@@ -1,0 +1,255 @@
+<div
+  class="container p-4"
+  *ngIf="candidate$ | async as candidate; else notFound"
+>
+  <div class="mb-4">
+    <a routerLink="/candidates" class="text-medium hover:underline text-sm"
+      >← Back to Candidates</a
+    >
+  </div>
+
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h1 class="text-2xl mb-1">{{ candidate.candidate?.fullName }}</h1>
+      <div class="text-medium text-lg">
+        {{ candidate.job?.roleTitle }} • {{ candidate.job?.clientName }}
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button
+        class="btn btn-outline"
+        [routerLink]="['/candidates/edit', candidate.id]"
+      >
+        Edit Candidate
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 gap-6">
+    <div class="col-span-2">
+      <div class="card mb-6">
+        <h3 class="mb-4 border-b pb-2">Candidate Details</h3>
+
+        <div class="grid grid-cols-2 gap-4 text-sm mb-4">
+          <div>
+            <span class="block font-bold mb-1">Email</span>
+            <span class="text-medium">
+              {{ getContactValue(candidate, "email") }}
+            </span>
+          </div>
+          <div>
+            <span class="block font-bold mb-1">Phone</span>
+            <span class="text-medium">
+              {{ getContactValue(candidate, "phone") }}
+            </span>
+          </div>
+          <div>
+            <span class="block font-bold mb-1">Current Location</span>
+            <span class="text-medium">{{ candidate.currentLocation }}</span>
+          </div>
+          <div>
+            <span class="block font-bold mb-1">Total Experience</span>
+            <span class="text-medium"
+              >{{ candidate.totalExperience }} years</span
+            >
+          </div>
+          <div>
+            <span class="block font-bold mb-1">Relevant Experience</span>
+            <span class="text-medium"
+              >{{ candidate.relevantExperience }} years</span
+            >
+          </div>
+          <div>
+            <span class="block font-bold mb-1">Current CTC</span>
+            <span class="text-medium">{{ candidate.currentCtc }}</span>
+          </div>
+          <div>
+            <span class="block font-bold mb-1">Expected CTC</span>
+            <span class="text-medium">{{ candidate.expectedCtc }}</span>
+          </div>
+          <div>
+            <span class="block font-bold mb-1">Notice Period</span>
+            <span class="text-medium">{{ candidate.noticePeriod }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="candidate.resumeUrl" class="mb-4">
+          <span class="block font-bold mb-1">Resume</span>
+          <a
+            [href]="candidate.resumeUrl"
+            target="_blank"
+            class="text-primary hover:underline"
+            >View Resume</a
+          >
+        </div>
+
+        <div *ngIf="candidate.notes" class="mb-4">
+          <span class="block font-bold mb-1">Notes</span>
+          <p class="text-medium whitespace-pre-line">{{ candidate.notes }}</p>
+        </div>
+
+        <div
+          *ngIf="
+            candidate.dynamicData &&
+            Object.keys(candidate.dynamicData).length > 0
+          "
+        >
+          <span class="block font-bold mb-2">Additional Information</span>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div *ngFor="let key of objectKeys(candidate.dynamicData)">
+              <span class="block font-medium mb-1">{{ key }}</span>
+              <span class="text-medium">{{ candidate.dynamicData[key] }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="mb-4 border-b pb-2">Job Details</h3>
+        <div class="text-sm">
+          <div class="mb-2">
+            <span class="font-bold">Job Title:</span>
+            <span class="text-medium">{{ candidate.job?.roleTitle }}</span>
+          </div>
+          <div class="mb-2">
+            <span class="font-bold">Client:</span>
+            <span class="text-medium">{{ candidate.job?.clientName }}</span>
+          </div>
+          <div class="mb-2">
+            <span class="font-bold">Location:</span>
+            <span class="text-medium">{{ candidate.job?.location }}</span>
+          </div>
+          <div class="mb-2">
+            <span class="font-bold">Job Code:</span>
+            <span class="text-medium">{{ candidate.job?.jobCode }}</span>
+          </div>
+          <div *ngIf="candidate.job?.description">
+            <span class="font-bold">Description:</span>
+            <p class="text-medium whitespace-pre-line mt-1">
+              {{ candidate.job?.description }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-span-1">
+      <div class="card">
+        <h3 class="mb-4">Application Status</h3>
+        <div class="mb-4">
+          <label class="block text-xs font-bold uppercase text-gray-500 mb-1"
+            >Current Status</label
+          >
+          <div *ngIf="!editingStatus">
+            <span
+              class="badge"
+              [ngClass]="
+                'status-' + candidate.status.toLowerCase().replace(' ', '-')
+              "
+            >
+              {{ candidate.status }}
+            </span>
+            <button
+              (click)="startEditingStatus(candidate.status)"
+              class="btn btn-icon btn-sm btn-ghost ml-2"
+              title="Edit Status"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                ></path>
+                <path
+                  d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div *ngIf="editingStatus" class="flex gap-2 items-center">
+            <select
+              [(ngModel)]="tempStatus"
+              class="form-control text-sm py-1 h-auto flex-1"
+            >
+              <option *ngFor="let s of statuses" [value]="s">
+                {{ s }}
+              </option>
+            </select>
+            <button
+              (click)="saveStatus(candidate)"
+              class="btn btn-icon btn-sm text-green-600"
+              title="Save"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                ></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+            </button>
+            <button
+              (click)="cancelEditingStatus()"
+              class="btn btn-icon btn-sm text-gray-500"
+              title="Cancel"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="text-xs text-medium">
+          <div class="mb-2">
+            Sourced: {{ candidate.createdDate | date: "mediumDate" }}
+          </div>
+          <div class="mb-2">By: {{ candidate.sourcedBy?.fullName }}</div>
+          <div *ngIf="candidate.rejectedDate">
+            Rejected: {{ candidate.rejectedDate | date: "mediumDate" }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #notFound>
+  <div class="container p-12 text-center">
+    <h2 class="text-2xl font-bold">Candidate Not Found</h2>
+    <p class="text-medium mb-6">
+      The candidate you are looking for doesn't exist or has been removed.
+    </p>
+    <a routerLink="/candidates" class="btn btn-primary"
+      >Back to All Candidates</a
+    >
+  </div>
+</ng-template>

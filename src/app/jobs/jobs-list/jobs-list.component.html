@@ -20,32 +20,45 @@
         <tr *ngFor="let job of jobs$ | async">
           <td class="text-medium">{{ job.jobCode }}</td>
           <td>
-            <a [routerLink]="['/jobs', job.id]" class="font-bold text-primary hover:underline">
-              {{ job.title }}
+            <a
+              [routerLink]="['/jobs', job.id]"
+              class="font-bold text-primary hover:underline"
+            >
+              {{ job.roleTitle }}
             </a>
-            <div class="text-sm text-medium">{{ job.companyName }}</div>
+            <div class="text-sm text-medium">{{ job.clientName }}</div>
           </td>
           <td>{{ job.location }}</td>
           <td>
-            <span class="badge" 
-                  [ngClass]="{'bg-green-100 text-green-800': job.status === 'Open', 'bg-red-100 text-red-800': job.status === 'Closed'}">
+            <span
+              class="badge"
+              [ngClass]="{
+                'bg-green-100 text-green-800': job.status === 'Open',
+                'bg-red-100 text-red-800': job.status === 'Closed',
+              }"
+            >
               {{ job.status }}
             </span>
           </td>
           <td>
             <div class="flex items-center gap-2">
-              <span class="font-bold">{{ job.candidateCount || 0 }}</span>
+              <span class="font-bold">{{ job.appCount || 0 }}</span>
               <span class="text-sm text-medium">Active</span>
             </div>
           </td>
           <td>
-            <a [routerLink]="['/jobs', job.id]" class="btn btn-sm btn-outline">View</a>
+            <a [routerLink]="['/jobs', job.id]" class="btn btn-sm btn-outline"
+              >View</a
+            >
           </td>
         </tr>
       </tbody>
     </table>
-    
-    <div *ngIf="(jobs$ | async)?.length === 0" class="p-4 text-center text-medium">
+
+    <div
+      *ngIf="(jobs$ | async)?.length === 0"
+      class="p-4 text-center text-medium"
+    >
       No jobs found. Start by adding one!
     </div>
   </div>

@@ -1,2 +1,2 @@
-<app-topbar></app-topbar>
+<app-topbar *ngIf="showTopbar$ | async"></app-topbar>
 <router-outlet></router-outlet>

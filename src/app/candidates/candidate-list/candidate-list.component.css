@@ -3,38 +3,75 @@
   padding: 0.25em 0.6em;
   font-size: 0.75rem;
   font-weight: 600;
-  border-radius: 9999px;
+  line-height: 1;
+  text-align: center;
   white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 9999px;
 }
 
-/* Status Colors */
-.status-sourced {
-  background-color: #e0f2fe;
-  color: #0369a1;
-}
-
-.status-shortlisted {
-  background-color: #fef3c7;
-  color: #b45309;
-}
-
-.status-in-process {
+.bg-blue-100 {
   background-color: #dbeafe;
+}
+
+.text-blue-800 {
   color: #1e40af;
 }
 
-.status-hired {
-  background-color: #dcfce7;
-  color: #15803d;
+.bg-yellow-100 {
+  background-color: #fef3c7;
 }
 
-.status-rejected {
+.text-yellow-800 {
+  color: #92400e;
+}
+
+.bg-orange-100 {
+  background-color: #fed7aa;
+}
+
+.text-orange-800 {
+  color: #9a3412;
+}
+
+.bg-green-100 {
+  background-color: #d1fae5;
+}
+
+.text-green-800 {
+  color: #065f46;
+}
+
+.bg-red-100 {
   background-color: #fee2e2;
+}
+
+.text-red-800 {
   color: #991b1b;
 }
 
+.bg-purple-100 {
+  background-color: #e9d5ff;
+}
+
+.text-purple-800 {
+  color: #6b21a8;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.font-bold {
+  font-weight: 600;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
 .text-primary {
-  color: var(--primary-color);
+  color: var(--primary-hover);
 }
 
 .text-medium {

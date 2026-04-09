@@ -1,77 +1,147 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { JobsService } from '../services/jobs.service';
-import { CandidatesService } from '../services/candidates.service';
-import { Job, Candidate } from '../models';
-import { firstValueFrom } from 'rxjs';
+import { Subject, Subscription, of } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  tap,
+  catchError,
+} from 'rxjs/operators';
+import { SearchService } from '../services/search.service';
+import { AuthService } from '../services/auth.service';
+import { UserMinimum } from '../models';
 
 @Component({
   selector: 'app-topbar',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './topbar.component.html',
-  styleUrls: ['./topbar.component.css']
+  styleUrls: ['./topbar.component.css'],
 })
-export class TopbarComponent {
+export class TopbarComponent implements OnInit, OnDestroy {
   private router = inject(Router);
-  private jobsService = inject(JobsService);
-  private candidatesService = inject(CandidatesService);
+  private searchService = inject(SearchService);
+  private authService = inject(AuthService);
 
+  // State
   searchQuery = '';
+  searchType: 'All' | 'Jobs' | 'Candidates' = 'All';
   searchResults: any[] = [];
   showResults = false;
+  isSearching = false;
 
-  constructor() {}
+  // Pagination
+  currentOffset = 0;
+  readonly pageSize = 10;
+  canLoadMore = false;
 
-  async onSearch() {
-    if (!this.searchQuery.trim()) {
+  private searchSubject = new Subject<{
+    q: string;
+    type: string;
+    offset: number;
+  }>();
+  private searchSubscription?: Subscription;
+  private userSubscription?: Subscription;
+
+  currentUser: UserMinimum | null = null;
+
+  ngOnInit() {
+    this.userSubscription = this.authService.currentUser$.subscribe(
+      (user) => (this.currentUser = user),
+    );
+
+    this.searchSubscription = this.searchSubject
+      .pipe(
+        debounceTime(300),
+        // We only trigger a new search if the query/type changes OR offset increases
+        distinctUntilChanged(
+          (p, c) => p.q === c.q && p.type === c.type && p.offset === c.offset,
+        ),
+        tap(() => (this.isSearching = true)),
+        switchMap(({ q, type, offset }) =>
+          this.searchService.globalSearch(q, type, this.pageSize, offset).pipe(
+            catchError(() => of([])), // Handle errors gracefully
+            tap((newResults) => {
+              if (offset === 0) {
+                this.searchResults = newResults;
+              } else {
+                this.searchResults = [...this.searchResults, ...newResults];
+              }
+              // If we got exactly 'pageSize' results, there's likely more to fetch
+              this.canLoadMore = newResults.length === this.pageSize;
+              this.isSearching = false;
+            }),
+          ),
+        ),
+      )
+      .subscribe();
+  }
+
+  onInputChange() {
+    this.currentOffset = 0;
+    this.canLoadMore = false;
+
+    if (this.searchQuery.trim().length < 2) {
       this.showResults = false;
+      this.searchResults = [];
       return;
     }
 
-    const query = this.searchQuery.toLowerCase();
-    
-    // Simple client-side search
-    const jobs = await firstValueFrom(this.jobsService.jobs$) as Job[];
-    const candidates = await firstValueFrom(this.candidatesService.candidates$) as Candidate[];
-
-    const matchingJobs = jobs.filter((j: Job) => 
-      j.title.toLowerCase().includes(query) || 
-      j.jobCode.toLowerCase().includes(query)
-    ).map((j: Job) => ({ type: 'Job', name: j.title, id: j.id, detail: j.jobCode }));
-
-    const matchingCandidates = candidates.filter((c: Candidate) => 
-      c.fullName.toLowerCase().includes(query) || 
-      c.email.toLowerCase().includes(query)
-    ).map((c: Candidate) => ({ type: 'Candidate', name: c.fullName, id: c.jobId, detail: c.email })); // Navigating to Job for now as per req, or should it be candidate detail? Req says "Associated job if candidate is found". Wait, "Auto-redirect to Job detail page / Associated job if candidate is found".
-
-    // For candidate, let's navigate to the job detail but maybe expanded? 
-    // Actually, MVP req says "Associated job if candidate is found". 
-    // But we have candidate list too. Let's redirect to Job Detail for now as that's where candidates are listed mainly.
-    // Or maybe Candidate List filtered? "View list of candidates" is a feature.
-    // Let's stick to simple "Go to Job" for MVP if it's a job match, or "Go to Candidate list filtered" if it's a candidate?
-    // Req: "Auto-redirect to: Job detail page, Associated job if candidate is found"
-    
-    this.searchResults = [...matchingJobs, ...matchingCandidates];
     this.showResults = true;
+    this.searchSubject.next({
+      q: this.searchQuery,
+      type: this.searchType,
+      offset: 0,
+    });
+  }
+
+  loadMore(event: Event) {
+    event.stopPropagation(); // Keep dropdown open
+    if (this.isSearching || !this.canLoadMore) return;
+
+    this.currentOffset += this.pageSize;
+    this.searchSubject.next({
+      q: this.searchQuery,
+      type: this.searchType,
+      offset: this.currentOffset,
+    });
   }
 
   selectResult(result: any) {
     this.showResults = false;
     this.searchQuery = '';
-    if (result.type === 'Job') {
-      this.router.navigate(['/jobs', result.id]);
-    } else if (result.type === 'Candidate') {
-      // Redirect to the job since the candidate is associated with it
-      this.router.navigate(['/jobs', result.id]); 
-    }
+    // Navigate to Job detail for both types as per your tracker setup
+    this.router.navigate(['/jobs', result.id]);
   }
 
   closeSearch() {
-    setTimeout(() => {
-      this.showResults = false;
-    }, 200);
+    // Delay to let click events process
+    setTimeout(() => (this.showResults = false), 200);
+  }
+
+  ngOnDestroy() {
+    this.searchSubscription?.unsubscribe();
+    this.userSubscription?.unsubscribe();
+  }
+
+  get initials(): string {
+    if (!this.currentUser?.fullName) {
+      return 'NA';
+    }
+
+    return this.currentUser.fullName
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((name: string) => name[0].toUpperCase())
+      .join('');
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }
