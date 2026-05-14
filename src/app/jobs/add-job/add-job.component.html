@@ -1,4 +1,15 @@
 <div class="container p-4">
+  <!-- Full-screen loading overlay -->
+  <div
+    *ngIf="loading"
+    class="fixed inset-0 bg-white bg-opacity-90 z-50 flex flex-col items-center justify-center"
+  >
+    <div class="spinner"></div>
+    <p class="mt-4 text-sm font-semibold text-primary animate-pulse">
+      {{ isEditMode ? "Updating Job..." : "Creating Job..." }}
+    </p>
+  </div>
+
   <div class="mb-4">
     <a routerLink="/jobs" class="text-medium hover:underline text-sm">Cancel</a>
   </div>
@@ -163,7 +174,7 @@
         <button
           type="submit"
           class="btn btn-primary"
-          [disabled]="jobForm.invalid"
+          [disabled]="jobForm.invalid || loading"
         >
           {{ isEditMode ? "Update Job" : "Create Job" }}
         </button>

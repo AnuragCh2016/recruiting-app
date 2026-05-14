@@ -1,4 +1,4 @@
-<div class="container p-4" *ngIf="job$ | async as job; else notFound">
+<div class="container p-4" *ngIf="job$ | async as job; else loadingOrError">
   <div class="mb-4">
     <a routerLink="/jobs" class="text-medium hover:underline text-sm"
       >← Back to Jobs</a
@@ -18,7 +18,7 @@
       </button>
       <button
         class="btn btn-primary"
-        routerLink="/add-candidate"
+        [routerLink]="['/candidates/entry']"
         [queryParams]="{ jobId: job.id }"
       >
         Add Candidate
@@ -87,7 +87,7 @@
                   {{ app.candidateName }}
                 </div>
                 <div class="text-xs text-medium">
-                  Sourced: {{ app.createdDate | date: "shortDate" }}
+                  Sourced: {{ app.sharedDate | date: "shortDate" }}
                 </div>
               </td>
               <td>
@@ -236,5 +236,25 @@
       The job you are looking for doesn't exist or has been removed.
     </p>
     <a routerLink="/jobs" class="btn btn-primary">Back to All Jobs</a>
+  </div>
+</ng-template>
+
+<ng-template #loadingOrError>
+  <ng-container *ngIf="fetchError; else loading">
+    <div class="container p-12 text-center">
+      <h2 class="text-2xl font-bold">Job Not Found</h2>
+      <p class="text-medium mb-6">The job you are looking for doesn't exist.</p>
+      <a routerLink="/jobs" class="btn btn-primary">Back to All Jobs</a>
+    </div>
+  </ng-container>
+</ng-template>
+
+<ng-template #loading>
+  <div class="flex flex-col items-center justify-center p-20 text-center">
+    <div class="spinner"></div>
+    <h2 class="mt-4 text-xl font-semibold animate-pulse text-primary">
+      Fetching job details...
+    </h2>
+    <p class="text-muted">Please wait while we gather job data.</p>
   </div>
 </ng-template>

@@ -6,7 +6,8 @@ import { map } from 'rxjs/operators'; // Crucial fix for the 'map' error
 
 import { JobsService } from '../services/jobs.service';
 import { ApplicationService } from '../services/application.service';
-import { Job, ApplicationStatus, ApplicationListRead } from '../models';
+import { CandidateService } from '../services/candidate.service';
+import { Job, ApplicationStatus, CandidateListRead } from '../models';
 
 // The interface you were missing
 export interface DashboardMetrics {
@@ -27,9 +28,10 @@ export interface DashboardMetrics {
 export class DashboardComponent implements OnInit {
   private jobsService = inject(JobsService);
   private appService = inject(ApplicationService);
+  private candidateService = inject(CandidateService);
 
   recentJobs$: Observable<Job[]>;
-  recentCandidates$: Observable<ApplicationListRead[]>;
+  recentCandidates$: Observable<CandidateListRead[]>;
   metrics$: Observable<DashboardMetrics>;
 
   constructor() {
@@ -37,10 +39,11 @@ export class DashboardComponent implements OnInit {
     this.metrics$ = combineLatest({
       jobs: this.jobsService.jobs$,
       apps: this.appService.applications$,
+      candidates: this.candidateService.candidates$,
     }).pipe(
-      map(({ jobs, apps }) => ({
+      map(({ jobs, apps, candidates }) => ({
         totalJobs: jobs.filter((j) => j.status === 'Open').length,
-        totalCandidates: new Set(apps.map((a) => a.candidateId)).size,
+        totalCandidates: candidates.length,
         shortlisted: apps.filter((a) => a.status === ApplicationStatus.Shared)
           .length,
         inProcess: apps.filter((a) => a.status === ApplicationStatus.InProcess)
@@ -63,13 +66,12 @@ export class DashboardComponent implements OnInit {
     );
 
     // Recent Candidates
-    this.recentCandidates$ = this.appService.applications$.pipe(
-      map((apps) =>
-        [...apps]
+    this.recentCandidates$ = this.candidateService.candidates$.pipe(
+      map((candidates) =>
+        [...candidates]
           .sort(
             (a, b) =>
-              new Date(b.createdDate).getTime() -
-              new Date(a.createdDate).getTime(),
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
           )
           .slice(0, 5),
       ),
@@ -80,5 +82,6 @@ export class DashboardComponent implements OnInit {
     // Load data when dashboard initializes (after login)
     this.jobsService.refreshJobs().subscribe();
     this.appService.refreshApplications();
+    this.candidateService.refreshCandidates();
   }
 }

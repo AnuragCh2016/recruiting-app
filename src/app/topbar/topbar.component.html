@@ -29,6 +29,73 @@
       class="hover:text-primary transition-colors"
       >Candidates</a
     >
+
+    <!-- My Desk Dropdown -->
+    <div
+      class="relative my-desk-dropdown"
+      *ngIf="currentUser"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        (click)="toggleMyDeskDropdown()"
+        class="hover:text-primary transition-colors flex items-center gap-1"
+        [class.text-primary]="showMyDeskDropdown"
+        data-dropdown="my-desk"
+      >
+        My Desk
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            [attr.d]="showMyDeskDropdown ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'"
+          ></path>
+        </svg>
+      </button>
+
+      <div
+        *ngIf="showMyDeskDropdown"
+        class="absolute top-full left-0 mt-1 bg-white border rounded-md shadow-lg py-2 min-w-[200px] z-20"
+      >
+        <a
+          routerLink="/my-jobs"
+          routerLinkActive="bg-primary text-white"
+          class="block px-4 py-2 hover:bg-gray-100 text-sm"
+          (click)="closeDropdowns()"
+        >
+          My Jobs
+        </a>
+        <a
+          routerLink="/my-call-logs"
+          routerLinkActive="bg-primary text-white"
+          class="block px-4 py-2 hover:bg-gray-100 text-sm"
+          (click)="closeDropdowns()"
+        >
+          My Call Logs
+        </a>
+        <a
+          routerLink="/my-applications"
+          routerLinkActive="bg-primary text-white"
+          class="block px-4 py-2 hover:bg-gray-100 text-sm"
+          (click)="closeDropdowns()"
+        >
+          My Applications
+        </a>
+        <a
+          routerLink="/my-interviews"
+          routerLinkActive="bg-primary text-white"
+          class="block px-4 py-2 hover:bg-gray-100 text-sm"
+          (click)="closeDropdowns()"
+        >
+          My Interview Calendar
+        </a>
+      </div>
+    </div>
   </nav>
 
   <div
@@ -92,6 +159,76 @@
       >
         No results found.
       </div>
+    </div>
+  </div>
+
+  <!-- Management Dropdown (Admin/Manager only) -->
+  <div
+    class="relative management-dropdown"
+    *ngIf="
+      currentUser &&
+      (currentUser.role === 'Admin' || currentUser.role === 'Manager')
+    "
+    (click)="$event.stopPropagation()"
+  >
+    <button
+      (click)="toggleManagementDropdown()"
+      class="hover:text-primary transition-colors flex items-center gap-1"
+      [class.text-primary]="showManagementDropdown"
+      data-dropdown="management"
+    >
+      Management
+      <svg
+        class="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          [attr.d]="showManagementDropdown ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'"
+        ></path>
+      </svg>
+    </button>
+
+    <div
+      *ngIf="showManagementDropdown"
+      class="absolute top-full right-0 mt-1 bg-white border rounded-md shadow-lg py-2 min-w-[200px] z-20"
+    >
+      <a
+        routerLink="/jobs/allocate"
+        routerLinkActive="bg-primary text-white"
+        class="block px-4 py-2 hover:bg-gray-100 text-sm"
+        (click)="closeDropdowns()"
+      >
+        Job Allocation
+      </a>
+      <a
+        routerLink="/users"
+        routerLinkActive="bg-primary text-white"
+        class="block px-4 py-2 hover:bg-gray-100 text-sm"
+        (click)="closeDropdowns()"
+      >
+        User Management
+      </a>
+      <a
+        routerLink="/team-activity"
+        routerLinkActive="bg-primary text-white"
+        class="block px-4 py-2 hover:bg-gray-100 text-sm"
+        (click)="closeDropdowns()"
+      >
+        Team Activity
+      </a>
+      <a
+        routerLink="/summary-reports"
+        routerLinkActive="bg-primary text-white"
+        class="block px-4 py-2 hover:bg-gray-100 text-sm"
+        (click)="closeDropdowns()"
+      >
+        Summary Reports
+      </a>
     </div>
   </div>
 

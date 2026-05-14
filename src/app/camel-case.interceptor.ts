@@ -12,8 +12,9 @@ const toSnake = (s: string) =>
 
 // Recursive object transformer
 const transformKeys = (obj: any, transformer: (s: string) => string): any => {
+  if (obj === null || obj === undefined) return obj;
   if (Array.isArray(obj)) return obj.map((v) => transformKeys(v, transformer));
-  if (obj !== null && obj.constructor === Object) {
+  if (obj.constructor === Object) {
     return Object.keys(obj).reduce(
       (result, key) => ({
         ...result,

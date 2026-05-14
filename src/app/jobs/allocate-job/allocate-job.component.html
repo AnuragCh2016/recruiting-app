@@ -1,0 +1,128 @@
+<div class="container p-4">
+  <div class="mb-4">
+    <a routerLink="/jobs" class="text-medium hover:underline text-sm">Cancel</a>
+  </div>
+
+  <div class="card max-w-3xl mx-auto">
+    <h2 class="mb-6 border-b pb-2">Allocate Job</h2>
+
+    <form [formGroup]="allocationForm" (ngSubmit)="onSubmit()">
+      <div class="grid grid-cols-1 gap-y-4">
+        <!-- Job Selection -->
+        <div class="form-group">
+          <label class="form-label">Job *</label>
+          <select formControlName="jobId" class="form-control">
+            <option value="">Select a job</option>
+            <option *ngFor="let job of jobs$ | async" [value]="job.id">
+              {{ job.clientName }} - {{ job.roleTitle }} ({{ job.jobCode }})
+            </option>
+          </select>
+          <div
+            *ngIf="f['jobId'].touched && f['jobId'].invalid"
+            class="text-red-600 text-xs mt-1"
+          >
+            Please select a job
+          </div>
+        </div>
+
+        <!-- User Selection -->
+        <div class="form-group">
+          <label class="form-label">Assign To *</label>
+          <select formControlName="userId" class="form-control">
+            <option value="">Select a user</option>
+            <option
+              *ngFor="let user of users$ | async | slice: 0 : 100"
+              [value]="user.id"
+            >
+              {{ user.fullName }} ({{ user.role }})
+              <ng-container *ngIf="user.managerId">
+                - Reports to:
+                {{ getManagerName(user.managerId, users$ | async) }}
+              </ng-container>
+            </option>
+          </select>
+          <div
+            *ngIf="f['userId'].touched && f['userId'].invalid"
+            class="text-red-600 text-xs mt-1"
+          >
+            Please select a user
+          </div>
+
+          <!-- Role-based info message -->
+          <div
+            *ngIf="f['userId'].value"
+            class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded"
+          >
+            <p class="text-sm text-blue-800">
+              <strong>Assignment Logic:</strong>
+              <span *ngIf="currentUser?.role === UserRole.Admin">
+                Admin can assign to: Manager, Team Lead, or Recruiter
+                (individual or with their entire team)
+              </span>
+              <span *ngIf="currentUser?.role === UserRole.Manager">
+                Manager can assign to: Team Leads or team members (individual or
+                with their entire team)
+              </span>
+              <span *ngIf="currentUser?.role === UserRole.TeamLead">
+                Team Lead can assign to: Their direct team members
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Team Assignment Checkbox -->
+        <div
+          *ngIf="showTeamCheckbox && teamMembers.length > 0"
+          class="form-group p-4 bg-yellow-50 border border-yellow-200 rounded"
+        >
+          <div class="flex items-start gap-2">
+            <input
+              type="checkbox"
+              formControlName="assignToTeam"
+              id="assignToTeam"
+              class="mt-1 w-4 h-4"
+            />
+            <label for="assignToTeam" class="form-label mb-0 cursor-pointer">
+              <strong>Assign to team as well?</strong>
+            </label>
+          </div>
+          <p class="text-xs text-gray-600 mt-2 ml-6">
+            This job will be assigned to the selected Team Lead
+            <strong>and all {{ teamMembers.length }} team member(s)</strong>
+            reporting to them:
+          </p>
+          <ul class="ml-6 mt-2 text-sm text-gray-700">
+            <li *ngFor="let member of teamMembers" class="list-disc">
+              {{ member.fullName }} ({{ member.role }})
+            </li>
+          </ul>
+        </div>
+
+        <!-- Info box for non-TL users -->
+        <div
+          *ngIf="selectedUserIsTL && teamMembers.length === 0"
+          class="p-3 bg-gray-50 border border-gray-200 rounded"
+        >
+          <p class="text-sm text-gray-600">
+            This Team Lead has no team members assigned yet.
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-4 mt-6 border-t pt-4">
+        <button
+          type="button"
+          routerLink="/jobs"
+          class="btn btn-outline"
+          [disabled]="submitting"
+        >
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="submitting">
+          {{ submitting ? "Allocating..." : "Allocate Job" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

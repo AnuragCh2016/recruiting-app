@@ -3,32 +3,22 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 // Import the new Flat List interface
-import { Application, ApplicationStatus, ApplicationListRead } from '../models';
-
-export interface ApplicationWithCandidateCreate {
-  fullName: string; // Changed to camelCase
-  email: string;
-  phone: string;
-  jobId: number; // Changed to camelCase
-  totalExperience: number;
-  relevantExperience: number;
-  currentCtc: string;
-  expectedCtc: string;
-  noticePeriod: string;
-  currentLocation: string;
-  resumeUrl: string;
-  dynamicData: Record<string, any>;
-  notes?: string;
-}
+import {
+  Application,
+  ApplicationStatus,
+  ApplicationSummary,
+  ApplicationDetailRead,
+} from '../models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApplicationService {
   private apiUrl = `${environment.apiUrl}/applications`;
+  private resumeUrl = `${environment.apiUrl}/resumes`;
 
   // 1. Updated to use the ListRead interface for the UI stream
-  private applicationsSubject = new BehaviorSubject<ApplicationListRead[]>([]);
+  private applicationsSubject = new BehaviorSubject<ApplicationSummary[]>([]);
   public applications$ = this.applicationsSubject.asObservable();
 
   constructor(private http: HttpClient) {
@@ -49,25 +39,49 @@ export class ApplicationService {
   /**
    * GET ALL APPLICATIONS (Flattened & RBAC Filtered)
    */
-  getApplications(): Observable<ApplicationListRead[]> {
-    return this.http.get<ApplicationListRead[]>(this.apiUrl);
+  getApplications(): Observable<ApplicationSummary[]> {
+    return this.http.get<ApplicationSummary[]>(this.apiUrl);
+  }
+
+  /**
+   * GET APPLICATIONS FOR A SPECIFIC CANDIDATE
+   */
+  getApplicationsByCandidate(candidateId: number): Observable<ApplicationSummary[]> {
+    return this.http.get<ApplicationSummary[]>(`${this.apiUrl}/candidate/${candidateId}`);
   }
 
   /**
    * GET FULL DETAILS (Everything including Job/Candidate objects)
    */
-  getApplicationById(id: number): Observable<Application> {
-    return this.http.get<Application>(`${this.apiUrl}/${id}`);
+  getApplicationById(id: number): Observable<ApplicationDetailRead> {
+    return this.http.get<ApplicationDetailRead>(`${this.apiUrl}/${id}`);
+  }
+
+  /**
+   * CREATE APPLICATION (for existing candidate)
+   */
+  createApplication(data: {
+    candidateId: number;
+    jobId: number;
+    totalExperience?: number;
+    relevantExperience?: number;
+    currentCtc?: number;
+    expectedCtc?: number;
+    noticePeriod?: string;
+    comments?: string;
+    status: ApplicationStatus;
+  }): Observable<Application> {
+    return this.http
+      .post<Application>(`${this.apiUrl}/apply`, data)
+      .pipe(tap(() => this.refreshApplications()));
   }
 
   /**
    * CREATE ATOMIC (Candidate + Application)
    */
-  submitApplicationWithCandidate(
-    data: ApplicationWithCandidateCreate,
-  ): Observable<any> {
+  submitApplicationWithCandidate(data: any): Observable<any> {
     return this.http
-      .post(`${this.apiUrl}/create`, data)
+      .post(`${this.apiUrl}/apply`, data)
       .pipe(tap(() => this.refreshApplications()));
   }
 
@@ -93,10 +107,38 @@ export class ApplicationService {
   /**
    * RECENT APPLICATIONS (Dashboard View)
    */
-  getRecentApplications(limit = 5): Observable<ApplicationListRead[]> {
+  getRecentApplications(limit = 5): Observable<ApplicationSummary[]> {
     const params = new HttpParams().set('limit', String(limit));
-    return this.http.get<ApplicationListRead[]>(`${this.apiUrl}/recent`, {
+    return this.http.get<ApplicationSummary[]>(`${this.apiUrl}/recent`, {
       params,
     });
+  }
+
+  /**
+   * Sends the resume to Gemini to extract core fields
+   * and job-specific dynamic tracker fields.
+   */
+  parseResume(file: File, jobId: number): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('job_id', jobId.toString());
+    // jobId is passed as a query parameter to match our FastAPI signature
+
+    return this.http.post<any>(`${this.resumeUrl}/parse`, formData);
+  }
+
+  /**
+   * Uploads the actual binary to S3 and associates it
+   * with the created Application ID.
+   */
+  uploadResume(applicationId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // This matches the logic: Create Application -> Get ID -> Upload File
+    return this.http.post<any>(
+      `${this.apiUrl}/${applicationId}/upload-resume`,
+      formData,
+    );
   }
 }

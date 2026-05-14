@@ -23,7 +23,7 @@ export class AuthService {
 
       if (decoded) {
         const user: UserMinimum = {
-          id: decoded.sub,
+          id: +decoded.sub,
           role: decoded.role,
           fullName: decoded.full_name,
           mustChangePassword: decoded.must_change_password,
@@ -42,7 +42,22 @@ export class AuthService {
   }
 
   public get isAuthenticated(): boolean {
-    return !!localStorage.getItem('access_token');
+    const token = localStorage.getItem('access_token');
+    if (!token) return false;
+
+    const decoded = this.decodeToken(token);
+    if (!decoded) return false;
+
+    // Check if token is expired
+    const now = Math.floor(Date.now() / 1000);
+    if (decoded.exp && decoded.exp < now) {
+      // Token expired — clean up
+      localStorage.removeItem('access_token');
+      this.currentUserSubject.next(null);
+      return false;
+    }
+
+    return true;
   }
 
   login(credentials: any): Observable<any> {

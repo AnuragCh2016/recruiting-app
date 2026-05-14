@@ -74,6 +74,9 @@ export class AddJobComponent implements OnInit {
       phone: 'phone',
       'e mail': 'email',
       email: 'email',
+      location: 'currentLocation',
+      'current location': 'currentLocation',
+      city: 'currentLocation',
       ctc: 'currentCtc',
       'current ctc': 'currentCtc',
       fixed: 'fixedCtc',
@@ -134,6 +137,7 @@ export class AddJobComponent implements OnInit {
 
   onSubmit() {
     if (this.jobForm.valid) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       this.loading = true;
       const formValue = { ...this.jobForm.value };
 
@@ -165,20 +169,20 @@ export class AddJobComponent implements OnInit {
   private handleJdUpload(jobId: number, file: File | null) {
     if (file) {
       this.jobsService.uploadJd(jobId, file).subscribe({
-        next: () => this.navigateHome(),
+        next: () => this.navigateToJob(jobId),
         error: (err) => {
           alert('Job saved, but JD upload failed.');
-          this.navigateHome();
+          this.navigateToJob(jobId);
         },
       });
     } else {
-      this.navigateHome();
+      this.navigateToJob(jobId);
     }
   }
 
-  private navigateHome() {
+  private navigateToJob(jobId: number) {
     this.loading = false;
-    this.router.navigate(['/jobs']);
+    this.router.navigate(['/jobs', jobId]);
   }
 
   private handleError(err: any) {

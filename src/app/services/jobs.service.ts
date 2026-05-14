@@ -54,7 +54,7 @@ export class JobsService {
    */
   updateJob(updatedJob: Job): Observable<Job> {
     return this.http
-      .put<Job>(`${this.apiBaseUrl}/${updatedJob.id}`, updatedJob)
+      .patch<Job>(`${this.apiBaseUrl}/${updatedJob.id}`, updatedJob)
       .pipe(
         tap(() => this.loadJobsIntoCache()), // Refresh list to show updated data
       );

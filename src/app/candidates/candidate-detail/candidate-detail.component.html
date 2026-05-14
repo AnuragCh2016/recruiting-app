@@ -1,255 +1,464 @@
 <div
   class="container p-4"
-  *ngIf="candidate$ | async as candidate; else notFound"
+  *ngIf="candidate$ | async as candidate; else loadingOrError"
 >
-  <div class="mb-4">
+  <div class="mb-4 flex justify-between items-center">
     <a routerLink="/candidates" class="text-medium hover:underline text-sm"
       >← Back to Candidates</a
     >
-  </div>
 
-  <div class="flex justify-between items-start mb-6">
-    <div>
-      <h1 class="text-2xl mb-1">{{ candidate.candidate?.fullName }}</h1>
-      <div class="text-medium text-lg">
-        {{ candidate.job?.roleTitle }} • {{ candidate.job?.clientName }}
-      </div>
-    </div>
     <div class="flex gap-2">
-      <button
-        class="btn btn-outline"
-        [routerLink]="['/candidates/edit', candidate.id]"
+      <a
+        *ngIf="candidate.resumeUrl"
+        [href]="candidate.resumeUrl"
+        target="_blank"
+        class="btn btn-outline flex items-center gap-2 text-sm"
       >
-        Edit Candidate
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+          ></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        View Resume
+      </a>
+      <div
+        *ngIf="!candidate.resumeUrl"
+        class="text-sm text-gray-500 italic px-3 py-2"
+      >
+        No resume uploaded
+      </div>
+
+      <button
+        (click)="toggleEdit()"
+        class="btn"
+        [ngClass]="isEditMode ? 'btn-outline' : 'btn-primary'"
+      >
+        {{ isEditMode ? "Cancel Edit" : "Edit Profile" }}
       </button>
     </div>
   </div>
 
-  <div class="grid grid-cols-3 gap-6">
-    <div class="col-span-2">
-      <div class="card mb-6">
-        <h3 class="mb-4 border-b pb-2">Candidate Details</h3>
+  <div class="card max-w-4xl mx-auto">
+    <h2 class="mb-6 border-b pb-2">
+      {{ candidate.fullName }}'s Profile
+      <div
+        *ngIf="isEditMode"
+        class="text-xs font-bold text-blue-600 animate-pulse uppercase mt-2"
+      >
+        Editing Mode Active
+      </div>
+    </h2>
 
-        <div class="grid grid-cols-2 gap-4 text-sm mb-4">
-          <div>
-            <span class="block font-bold mb-1">Email</span>
-            <span class="text-medium">
-              {{ getContactValue(candidate, "email") }}
+    <form [formGroup]="candidateForm">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <div class="col-span-2">
+          <h3
+            class="text-sm font-bold uppercase text-gray-400 tracking-wider mb-2"
+          >
+            Personal Information
+          </h3>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input
+            type="text"
+            formControlName="firstName"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input
+            type="text"
+            formControlName="lastName"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input
+            type="email"
+            formControlName="email"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input
+            type="text"
+            formControlName="phone"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Gender</label>
+          <select
+            formControlName="gender"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+          >
+            <option value="">Select...</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Current Location</label>
+          <input
+            type="text"
+            formControlName="currentLocation"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+          />
+        </div>
+
+        <div class="col-span-2 mt-4">
+          <h3
+            class="text-sm font-bold uppercase text-gray-400 tracking-wider mb-2"
+          >
+            Professional Experience
+          </h3>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Current Organization</label>
+          <input
+            type="text"
+            formControlName="currentOrg"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Current Designation</label>
+          <input
+            type="text"
+            formControlName="currentDesignation"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Total Experience (Years)</label>
+          <input
+            type="number"
+            formControlName="totalYearsExp"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+            step="0.1"
+          />
+        </div>
+
+        <div class="form-group col-span-2">
+          <label class="form-label">Key Skills</label>
+          <div *ngIf="!isEditMode" class="flex flex-wrap gap-1">
+            <span
+              *ngFor="let skill of candidate.keySkills; let i = index"
+              class="inline-block px-2 py-1 rounded text-xs font-medium"
+              [ngClass]="getSkillColorClass(i)"
+              [title]="skill"
+            >
+              {{ skill }}
             </span>
           </div>
-          <div>
-            <span class="block font-bold mb-1">Phone</span>
-            <span class="text-medium">
-              {{ getContactValue(candidate, "phone") }}
-            </span>
+          <input
+            *ngIf="isEditMode"
+            type="text"
+            formControlName="keySkills"
+            class="form-control"
+            placeholder="Java, Angular, FastAPI..."
+          />
+        </div>
+
+        <div class="col-span-2 mt-4">
+          <h3
+            class="text-sm font-bold uppercase text-gray-400 tracking-wider mb-2"
+          >
+            Highest Education
+          </h3>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Latest Degree</label>
+          <input
+            type="text"
+            formControlName="latestDegree"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Specialization</label>
+          <input
+            type="text"
+            formControlName="latestSpecialization"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+          />
+        </div>
+
+        <div class="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-group">
+            <label class="form-label">Institute</label>
+            <input
+              type="text"
+              formControlName="educationInstitute"
+              class="form-control"
+              [class.bg-white]="isEditMode"
+            />
           </div>
-          <div>
-            <span class="block font-bold mb-1">Current Location</span>
-            <span class="text-medium">{{ candidate.currentLocation }}</span>
-          </div>
-          <div>
-            <span class="block font-bold mb-1">Total Experience</span>
-            <span class="text-medium"
-              >{{ candidate.totalExperience }} years</span
-            >
-          </div>
-          <div>
-            <span class="block font-bold mb-1">Relevant Experience</span>
-            <span class="text-medium"
-              >{{ candidate.relevantExperience }} years</span
-            >
-          </div>
-          <div>
-            <span class="block font-bold mb-1">Current CTC</span>
-            <span class="text-medium">{{ candidate.currentCtc }}</span>
-          </div>
-          <div>
-            <span class="block font-bold mb-1">Expected CTC</span>
-            <span class="text-medium">{{ candidate.expectedCtc }}</span>
-          </div>
-          <div>
-            <span class="block font-bold mb-1">Notice Period</span>
-            <span class="text-medium">{{ candidate.noticePeriod }}</span>
+
+          <div class="form-group">
+            <label class="form-label">Year of Completion</label>
+            <input
+              type="number"
+              formControlName="educationCompletionYear"
+              class="form-control"
+              [class.bg-white]="isEditMode"
+            />
           </div>
         </div>
 
-        <div *ngIf="candidate.resumeUrl" class="mb-4">
-          <span class="block font-bold mb-1">Resume</span>
+        <div class="col-span-2 mt-4">
+          <h3
+            class="text-sm font-bold uppercase text-gray-400 tracking-wider mb-2"
+          >
+            Compensation & Notice
+          </h3>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Current CTC</label>
+          <input
+            type="number"
+            formControlName="currentCtc"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Expected CTC</label>
+          <input
+            type="number"
+            formControlName="expectedCtc"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Notice Period</label>
+          <input
+            type="text"
+            formControlName="noticePeriod"
+            class="form-control"
+            [class.bg-white]="isEditMode"
+          />
+        </div>
+
+        <div class="form-group flex items-center pt-6">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              formControlName="isCurrentlyWorking"
+              class="w-4 h-4 text-blue-600"
+              [disabled]="!isEditMode"
+            />
+            <span class="text-sm font-medium text-gray-700"
+              >Currently Working?</span
+            >
+          </label>
+        </div>
+
+        <div class="form-group col-span-2">
+          <label class="form-label">Notes</label>
+          <textarea
+            formControlName="notes"
+            class="form-control"
+            rows="3"
+            [class.bg-white]="isEditMode"
+          ></textarea>
+        </div>
+
+        <div class="form-group col-span-2">
+          <label class="form-label">Resume</label>
+          <ng-container *ngIf="!isEditMode">
+            <div *ngIf="candidate.resumeUrl; else noResume">
+              <!-- PDF Viewer -->
+              <div *ngIf="isPdfResume(candidate.resumeUrl); else docxBlock">
+                <iframe
+                  [src]="safeResumeUrl"
+                  class="w-full rounded border"
+                  style="height: 600px"
+                  frameborder="0"
+                ></iframe>
+              </div>
+              <!-- DOC/DOCX Message -->
+              <ng-template #docxBlock>
+                <div
+                  class="flex flex-col items-center justify-center p-8 border rounded bg-gray-50"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="text-gray-400 mb-3"
+                  >
+                    <path
+                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                    ></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                  <p class="text-gray-600 font-medium mb-1">
+                    Preview not available for Word documents
+                  </p>
+                  <p class="text-sm text-gray-500 mb-4">
+                    Please download the CV to view it.
+                  </p>
+                  <a
+                    [href]="candidate.resumeUrl"
+                    target="_blank"
+                    class="btn btn-primary inline-flex items-center gap-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                      ></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download CV
+                  </a>
+                </div>
+              </ng-template>
+            </div>
+            <ng-template #noResume>
+              <div
+                class="text-sm text-gray-500 italic p-3 border rounded bg-gray-50"
+              >
+                No resume uploaded
+              </div>
+            </ng-template>
+          </ng-container>
+          <input
+            *ngIf="isEditMode"
+            type="file"
+            (change)="onFileSelected($event)"
+            class="form-control"
+            accept=".pdf,.doc,.docx"
+          />
           <a
+            *ngIf="isEditMode && candidate.resumeUrl"
             [href]="candidate.resumeUrl"
             target="_blank"
-            class="text-primary hover:underline"
-            >View Resume</a
+            class="inline-flex items-center gap-2 mt-2 p-2 border rounded bg-blue-50 text-blue-600 hover:bg-blue-100 text-sm"
           >
-        </div>
-
-        <div *ngIf="candidate.notes" class="mb-4">
-          <span class="block font-bold mb-1">Notes</span>
-          <p class="text-medium whitespace-pre-line">{{ candidate.notes }}</p>
-        </div>
-
-        <div
-          *ngIf="
-            candidate.dynamicData &&
-            Object.keys(candidate.dynamicData).length > 0
-          "
-        >
-          <span class="block font-bold mb-2">Additional Information</span>
-          <div class="grid grid-cols-2 gap-4 text-sm">
-            <div *ngFor="let key of objectKeys(candidate.dynamicData)">
-              <span class="block font-medium mb-1">{{ key }}</span>
-              <span class="text-medium">{{ candidate.dynamicData[key] }}</span>
-            </div>
-          </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              ></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            {{ getFileName(candidate.resumeUrl) }}
+          </a>
         </div>
       </div>
 
-      <div class="card">
-        <h3 class="mb-4 border-b pb-2">Job Details</h3>
-        <div class="text-sm">
-          <div class="mb-2">
-            <span class="font-bold">Job Title:</span>
-            <span class="text-medium">{{ candidate.job?.roleTitle }}</span>
-          </div>
-          <div class="mb-2">
-            <span class="font-bold">Client:</span>
-            <span class="text-medium">{{ candidate.job?.clientName }}</span>
-          </div>
-          <div class="mb-2">
-            <span class="font-bold">Location:</span>
-            <span class="text-medium">{{ candidate.job?.location }}</span>
-          </div>
-          <div class="mb-2">
-            <span class="font-bold">Job Code:</span>
-            <span class="text-medium">{{ candidate.job?.jobCode }}</span>
-          </div>
-          <div *ngIf="candidate.job?.description">
-            <span class="font-bold">Description:</span>
-            <p class="text-medium whitespace-pre-line mt-1">
-              {{ candidate.job?.description }}
-            </p>
-          </div>
-        </div>
+      <div *ngIf="isEditMode" class="flex justify-end gap-4 mt-6 border-t pt-4">
+        <button type="button" (click)="saveChanges()" class="btn btn-primary">
+          Save Changes
+        </button>
       </div>
-    </div>
-
-    <div class="col-span-1">
-      <div class="card">
-        <h3 class="mb-4">Application Status</h3>
-        <div class="mb-4">
-          <label class="block text-xs font-bold uppercase text-gray-500 mb-1"
-            >Current Status</label
-          >
-          <div *ngIf="!editingStatus">
-            <span
-              class="badge"
-              [ngClass]="
-                'status-' + candidate.status.toLowerCase().replace(' ', '-')
-              "
-            >
-              {{ candidate.status }}
-            </span>
-            <button
-              (click)="startEditingStatus(candidate.status)"
-              class="btn btn-icon btn-sm btn-ghost ml-2"
-              title="Edit Status"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                ></path>
-                <path
-                  d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                ></path>
-              </svg>
-            </button>
-          </div>
-          <div *ngIf="editingStatus" class="flex gap-2 items-center">
-            <select
-              [(ngModel)]="tempStatus"
-              class="form-control text-sm py-1 h-auto flex-1"
-            >
-              <option *ngFor="let s of statuses" [value]="s">
-                {{ s }}
-              </option>
-            </select>
-            <button
-              (click)="saveStatus(candidate)"
-              class="btn btn-icon btn-sm text-green-600"
-              title="Save"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-                ></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
-            </button>
-            <button
-              (click)="cancelEditingStatus()"
-              class="btn btn-icon btn-sm text-gray-500"
-              title="Cancel"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div class="text-xs text-medium">
-          <div class="mb-2">
-            Sourced: {{ candidate.createdDate | date: "mediumDate" }}
-          </div>
-          <div class="mb-2">By: {{ candidate.sourcedBy?.fullName }}</div>
-          <div *ngIf="candidate.rejectedDate">
-            Rejected: {{ candidate.rejectedDate | date: "mediumDate" }}
-          </div>
-        </div>
-      </div>
-    </div>
+    </form>
   </div>
 </div>
 
-<ng-template #notFound>
-  <div class="container p-12 text-center">
-    <h2 class="text-2xl font-bold">Candidate Not Found</h2>
-    <p class="text-medium mb-6">
-      The candidate you are looking for doesn't exist or has been removed.
-    </p>
-    <a routerLink="/candidates" class="btn btn-primary"
-      >Back to All Candidates</a
-    >
-  </div>
+<ng-template #loadingOrError>
+  <ng-container *ngIf="fetchError; else loading">
+    <div class="container p-12 text-center">
+      <div class="max-w-md mx-auto card p-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">
+          Candidate Not Found
+        </h2>
+        <p class="text-gray-500 mb-6">
+          The candidate details could not be retrieved. It may have been deleted
+          or moved.
+        </p>
+        <a routerLink="/candidates" class="btn btn-primary inline-block"
+          >Return to Candidate List</a
+        >
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #loading>
+    <div class="flex flex-col items-center justify-center p-20 text-center">
+      <div class="spinner"></div>
+      <h2 class="mt-4 text-xl font-semibold animate-pulse text-primary">
+        Fetching candidate details...
+      </h2>
+      <p class="text-muted">Please wait while we gather candidate data.</p>
+    </div>
+  </ng-template>
 </ng-template>

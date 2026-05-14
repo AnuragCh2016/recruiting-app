@@ -1,0 +1,226 @@
+<div
+  class="container p-4"
+  *ngIf="application$ | async as application; else loadingOrError"
+>
+  <div class="mb-4 flex justify-between items-center">
+    <a
+      routerLink="/my-applications"
+      class="text-medium hover:underline text-sm"
+    >
+      ← Back to Applications
+    </a>
+
+    <div class="flex gap-2">
+      <a
+        *ngIf="application.resumeSignedUrl"
+        [href]="application.resumeSignedUrl"
+        target="_blank"
+        class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+          ></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        View Resume
+      </a>
+      <button
+        (click)="toggleEdit()"
+        class="btn"
+        [ngClass]="isEditMode ? 'btn-outline' : 'btn-primary'"
+      >
+        {{ isEditMode ? "Cancel Edit" : "Update Status" }}
+      </button>
+    </div>
+  </div>
+
+  <div class="card max-w-4xl mx-auto">
+    <h2 class="mb-6 border-b pb-2">
+      Application Details
+      <div
+        *ngIf="isEditMode"
+        class="text-xs font-bold text-blue-600 animate-pulse uppercase mt-2"
+      >
+        Editing Mode Active
+      </div>
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Candidate Information -->
+      <div class="col-span-2">
+        <h3
+          class="text-sm font-bold uppercase text-gray-400 tracking-wider mb-3"
+        >
+          Candidate Information
+        </h3>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label font-semibold">Candidate Name</label>
+        <div class="text-base">{{ application.candidate.fullName }}</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label font-semibold">Phone</label>
+        <div class="text-base">{{ application.candidate.phone }}</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label font-semibold">Email</label>
+        <div class="text-base">{{ application.candidate.email }}</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label font-semibold">Current Location</label>
+        <div class="text-base">
+          {{ application.candidate.currentLocation }}
+        </div>
+      </div>
+
+      <!-- Job Information -->
+      <div class="col-span-2 mt-4">
+        <h3
+          class="text-sm font-bold uppercase text-gray-400 tracking-wider mb-3"
+        >
+          Job Information
+        </h3>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label font-semibold">Job Role</label>
+        <div class="text-base">
+          {{ application.candidate.currentDesignation }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label font-semibold">Current Organization</label>
+        <div class="text-base">{{ application.candidate.currentOrg }}</div>
+      </div>
+
+      <!-- Application Details -->
+      <div class="col-span-2 mt-4">
+        <h3
+          class="text-sm font-bold uppercase text-gray-400 tracking-wider mb-3"
+        >
+          Application Details
+        </h3>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label font-semibold">Status</label>
+        <div *ngIf="!isEditMode">
+          <span
+            class="inline-block px-3 py-1 rounded-full text-sm font-semibold"
+            [ngClass]="getStatusColorClass(application.status)"
+          >
+            {{ application.status }}
+          </span>
+        </div>
+        <select
+          *ngIf="isEditMode"
+          [(ngModel)]="selectedStatus"
+          class="form-control w-full border rounded px-3 py-2"
+        >
+          <option *ngFor="let status of applicationStatuses" [value]="status">
+            {{ status }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label font-semibold">Shared Date</label>
+        <div class="text-base">
+          {{ application.lastStatusUpdate | date: "MMM d, y h:mm a" }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label font-semibold">Total Experience</label>
+        <div class="text-base">{{ application.totalExperience }} years</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label font-semibold">Relevant Experience</label>
+        <div class="text-base">{{ application.relevantExperience }} years</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label font-semibold">Current CTC</label>
+        <div class="text-base">
+          {{ application.currentCtc | currency: "INR" : "symbol" : "1.2-2" }}
+          LPA
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label font-semibold">Expected CTC</label>
+        <div class="text-base">
+          {{ application.expectedCtc | currency: "INR" : "symbol" : "1.2-2" }}
+          LPA
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label font-semibold">Notice Period</label>
+        <div class="text-base">{{ application.noticePeriod }}</div>
+      </div>
+
+      <div class="form-group col-span-2">
+        <label class="form-label font-semibold">Comments</label>
+        <div *ngIf="!isEditMode" class="text-base whitespace-pre-wrap">
+          {{ application.comments || "No comments" }}
+        </div>
+        <textarea
+          *ngIf="isEditMode"
+          [(ngModel)]="comments"
+          class="form-control w-full border rounded px-3 py-2"
+          rows="4"
+        ></textarea>
+      </div>
+    </div>
+
+    <div *ngIf="isEditMode" class="flex justify-end gap-3 mt-6 border-t pt-4">
+      <button type="button" (click)="toggleEdit()" class="btn btn-outline">
+        Cancel
+      </button>
+      <button type="button" (click)="saveChanges()" class="btn btn-primary">
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingOrError>
+  <div *ngIf="fetchError" class="container p-4">
+    <div class="card p-12 text-center border-red-200 bg-red-50">
+      <h2 class="text-xl font-bold text-red-700">Unable to load application</h2>
+      <p class="text-red-600 mb-4">
+        There was an error connecting to the server.
+      </p>
+      <button (click)="reloadPage()" class="btn btn-outline">Try Again</button>
+    </div>
+  </div>
+
+  <div *ngIf="!fetchError" class="container p-4">
+    <div class="flex flex-col items-center justify-center p-20 text-center">
+      <div class="spinner"></div>
+      <h2 class="mt-4 text-xl font-semibold animate-pulse text-primary">
+        Loading Application...
+      </h2>
+    </div>
+  </div>
+</ng-template>

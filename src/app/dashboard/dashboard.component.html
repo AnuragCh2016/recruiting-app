@@ -62,22 +62,19 @@
       </div>
       <div class="p-2">
         <div
-          *ngFor="let app of recentCandidates$ | async"
-          [routerLink]="['/candidates', app.id]"
+          *ngFor="let candidate of recentCandidates$ | async"
+          [routerLink]="['/candidates', candidate.id]"
           class="p-2 border-b last:border-0 hover:bg-gray-50 flex justify-between items-center cursor-pointer"
         >
           <div>
-            <div class="font-bold">{{ app.fullName }}</div>
+            <div class="font-bold">{{ candidate.fullName }}</div>
             <div class="text-xs text-medium">
-              {{ app.roleTitle }} &#64; {{ app.clientName }}
+              {{ candidate.email }}
             </div>
           </div>
           <div class="text-right">
-            <span class="badge bg-green-100 text-green-800 mb-1">{{
-              app.status
-            }}</span>
             <div class="text-xs text-medium">
-              {{ app.createdDate | date: "shortDate" }}
+              {{ candidate.createdAt | date: "dd-MMM-yyyy" }}
             </div>
           </div>
         </div>

@@ -1,0 +1,142 @@
+<div class="container p-4">
+  <div class="mb-4">
+    <a routerLink="/users" class="text-medium hover:underline text-sm"
+      >Cancel</a
+    >
+  </div>
+
+  <div class="card max-w-3xl mx-auto">
+    <h2 class="mb-6 border-b pb-2">Add New User</h2>
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <!-- Full Name -->
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input
+            type="text"
+            formControlName="fullName"
+            class="form-control"
+            placeholder="Enter full name"
+          />
+          <div
+            *ngIf="f['fullName'].touched && f['fullName'].invalid"
+            class="text-red-600 text-xs mt-1"
+          >
+            Full name is required
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input
+            type="email"
+            formControlName="email"
+            class="form-control"
+            placeholder="john.doe@example.com"
+          />
+          <div
+            *ngIf="f['email'].touched && f['email'].invalid"
+            class="text-red-600 text-xs mt-1"
+          >
+            <div *ngIf="f['email'].errors?.['required']">Email is required</div>
+            <div *ngIf="f['email'].errors?.['email']">Invalid email format</div>
+          </div>
+        </div>
+
+        <!-- Phone -->
+        <div class="form-group">
+          <label class="form-label">Phone *</label>
+          <input
+            type="tel"
+            formControlName="phone"
+            class="form-control"
+            placeholder="+91 9876543210"
+          />
+          <div
+            *ngIf="f['phone'].touched && f['phone'].invalid"
+            class="text-red-600 text-xs mt-1"
+          >
+            <div *ngIf="f['phone'].errors?.['required']">Phone is required</div>
+            <div *ngIf="f['phone'].errors?.['pattern']">
+              Phone must be 10 digits
+            </div>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          <input
+            type="password"
+            formControlName="password"
+            class="form-control"
+            placeholder="Min 6 characters"
+          />
+          <div
+            *ngIf="f['password'].touched && f['password'].invalid"
+            class="text-red-600 text-xs mt-1"
+          >
+            <div *ngIf="f['password'].errors?.['required']">
+              Password is required
+            </div>
+            <div *ngIf="f['password'].errors?.['minlength']">
+              Password must be at least 6 characters
+            </div>
+          </div>
+        </div>
+
+        <!-- Role -->
+        <div class="form-group">
+          <label class="form-label">Role *</label>
+          <select formControlName="role" class="form-control">
+            <option *ngFor="let role of userRoles" [value]="role">
+              {{ role }}
+            </option>
+          </select>
+          <div
+            *ngIf="f['role'].touched && f['role'].invalid"
+            class="text-red-600 text-xs mt-1"
+          >
+            Role is required
+          </div>
+          <p class="text-xs text-gray-500 mt-1">
+            Note: Admin role cannot be assigned through this form
+          </p>
+        </div>
+
+        <!-- Manager -->
+        <div class="form-group">
+          <label class="form-label">Manager (Optional)</label>
+          <select formControlName="managerId" class="form-control">
+            <option value="">No Manager</option>
+            <option
+              *ngFor="let manager of managers$ | async"
+              [value]="manager.id"
+            >
+              {{ manager.fullName }} ({{ manager.role }})
+            </option>
+          </select>
+          <p class="text-xs text-gray-500 mt-1">
+            Assign a manager for hierarchy tracking
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-4 mt-6 border-t pt-4">
+        <button
+          type="button"
+          routerLink="/users"
+          class="btn btn-outline"
+          [disabled]="submitting"
+        >
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="submitting">
+          {{ submitting ? "Creating..." : "Create User" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,73 +1,815 @@
-<div class="container p-4">
-  <div class="flex justify-between items-center mb-4">
-    <h1>Candidates</h1>
+<div
+  class="p-4"
+  style="
+    height: calc(100vh - 4rem);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  "
+>
+  <div class="flex justify-between items-center mb-4 flex-shrink-0">
+    <h1 class="text-2xl font-bold">Candidate Search</h1>
     <a routerLink="/add-candidate" class="btn btn-primary"
       >+ Add New Candidate</a
     >
   </div>
 
-  <div class="card p-0">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Job Applied</th>
-          <th>Status</th>
-          <th>Sourced By</th>
-          <th>Experience</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let candidate of candidates$ | async">
-          <td>
-            <a
-              [routerLink]="['/candidates', candidate.id]"
-              class="font-bold text-primary hover:underline"
+  <div class="grid grid-cols-12 gap-4" style="flex: 1; min-height: 0">
+    <!-- Search Criteria Panel -->
+    <div class="col-span-3" style="overflow-y: auto; padding-right: 4px">
+      <div class="card p-4">
+        <div class="flex justify-between items-center mb-4">
+          <h2 style="margin-bottom: 0" class="text-lg font-bold">
+            Search Criteria
+          </h2>
+          <div class="flex gap-2">
+            <button
+              (click)="searchAll()"
+              class="text-sm text-blue-600 hover:text-blue-800 hover:underline"
             >
-              {{ candidate.fullName }}
-            </a>
-            <div class="text-sm text-medium">{{ candidate.email }}</div>
-          </td>
-          <td>
-            <div class="font-medium">{{ candidate.roleTitle }}</div>
-            <div class="text-sm text-medium">{{ candidate.clientName }}</div>
-          </td>
-          <td>
-            <span
-              class="badge"
-              [ngClass]="{
-                'bg-blue-100 text-blue-800': candidate.status === 'Sourced',
-                'bg-yellow-100 text-yellow-800': candidate.status === 'Shared',
-                'bg-orange-100 text-orange-800':
-                  candidate.status === 'In Process',
-                'bg-green-100 text-green-800':
-                  candidate.status === 'Offer Released',
-                'bg-red-100 text-red-800': candidate.status === 'Rejected',
-                'bg-purple-100 text-purple-800': candidate.status === 'Joined',
-              }"
+              Search All
+            </button>
+            <button
+              (click)="clearSearch()"
+              class="text-sm text-red-600 hover:text-red-800 hover:underline"
             >
-              {{ candidate.status }}
-            </span>
-          </td>
-          <td>{{ candidate.sourcedByName }}</td>
-          <td>{{ candidate.totalExperience }} years</td>
-          <td>
-            <a
-              [routerLink]="['/candidates', candidate.id]"
-              class="btn btn-sm btn-outline"
-              >View</a
-            >
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              Clear All
+            </button>
+          </div>
+        </div>
 
+        <form [formGroup]="searchForm" class="space-y-4">
+          <!-- Name Fields -->
+          <div class="form-group">
+            <label class="form-label text-sm font-semibold">First Name</label>
+            <input
+              type="text"
+              formControlName="firstName"
+              class="form-control w-full border rounded px-3 py-2 text-sm"
+              placeholder="Search by first name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label text-sm font-semibold">Last Name</label>
+            <input
+              type="text"
+              formControlName="lastName"
+              class="form-control w-full border rounded px-3 py-2 text-sm"
+              placeholder="Search by last name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label text-sm font-semibold">Email</label>
+            <input
+              type="email"
+              formControlName="email"
+              class="form-control w-full border rounded px-3 py-2 text-sm"
+              placeholder="candidate@example.com"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label text-sm font-semibold">Phone</label>
+            <input
+              type="text"
+              formControlName="phone"
+              class="form-control w-full border rounded px-3 py-2 text-sm"
+              placeholder="10-digit phone number"
+            />
+          </div>
+
+          <!-- Skills Fields -->
+          <div class="form-group">
+            <label class="form-label text-sm font-semibold"
+              >Must Have Skills</label
+            >
+            <input
+              type="text"
+              formControlName="mustHaveSkills"
+              class="form-control w-full border rounded px-3 py-2 text-sm"
+              placeholder="Java, Spring, AWS (comma-separated)"
+            />
+            <small class="text-xs text-gray-500"
+              >Separate multiple skills with commas</small
+            >
+          </div>
+
+          <div class="form-group">
+            <label class="form-label text-sm font-semibold"
+              >Good to Have Skills</label
+            >
+            <input
+              type="text"
+              formControlName="niceToHaveSkills"
+              class="form-control w-full border rounded px-3 py-2 text-sm"
+              placeholder="Angular, Docker (comma-separated)"
+            />
+            <small class="text-xs text-gray-500"
+              >Separate multiple skills with commas</small
+            >
+          </div>
+
+          <!-- Experience Range -->
+          <div class="grid grid-cols-2 gap-2">
+            <div class="form-group">
+              <label class="form-label text-sm font-semibold"
+                >Min Exp (yrs)</label
+              >
+              <input
+                type="number"
+                formControlName="minExp"
+                class="form-control w-full border rounded px-3 py-2 text-sm"
+                placeholder="0"
+                min="0"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label text-sm font-semibold"
+                >Max Exp (yrs)</label
+              >
+              <input
+                type="number"
+                formControlName="maxExp"
+                class="form-control w-full border rounded px-3 py-2 text-sm"
+                placeholder="20"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <!-- CTC Range -->
+          <div class="grid grid-cols-2 gap-2">
+            <div class="form-group">
+              <label class="form-label text-sm font-semibold"
+                >Min CTC (LPA)</label
+              >
+              <input
+                type="number"
+                formControlName="minCtc"
+                class="form-control w-full border rounded px-3 py-2 text-sm"
+                placeholder="0"
+                min="0"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label text-sm font-semibold"
+                >Max CTC (LPA)</label
+              >
+              <input
+                type="number"
+                formControlName="maxCtc"
+                class="form-control w-full border rounded px-3 py-2 text-sm"
+                placeholder="100"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <!-- Notice Period -->
+          <div class="form-group">
+            <label class="form-label text-sm font-semibold"
+              >Notice Period</label
+            >
+            <input
+              type="text"
+              formControlName="noticePeriod"
+              class="form-control w-full border rounded px-3 py-2 text-sm"
+              placeholder="e.g., 30 days, 2 months"
+            />
+          </div>
+
+          <!-- Search Button -->
+          <div class="mt-6">
+            <button
+              type="button"
+              (click)="performSearch()"
+              class="w-full btn font-semibold py-2 px-4 rounded"
+              style="background-color: #ffc107; color: #000"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="inline mr-2"
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Search Candidates
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Search Results Panel -->
     <div
-      *ngIf="(candidates$ | async)?.length === 0"
-      class="p-4 text-center text-medium"
+      class="col-span-9"
+      style="height: 100%; overflow-y: auto; padding-right: 4px"
     >
-      No candidates found. Start by adding one!
+      <!-- Search Status Header -->
+      <div *ngIf="isSearching" class="mb-4">
+        <div *ngIf="loadingSearch" class="flex items-center gap-2 text-primary">
+          <div class="spinner spinner-sm"></div>
+          <span class="text-sm font-semibold">Searching...</span>
+        </div>
+        <div
+          *ngIf="!loadingSearch && searchResults.length > 0"
+          class="text-sm text-gray-600"
+        >
+          Found <strong>{{ searchResults.length }}</strong> candidate(s)
+        </div>
+        <div
+          *ngIf="!loadingSearch && searchResults.length === 0"
+          class="text-sm text-gray-600"
+        >
+          No candidates found matching your criteria
+        </div>
+      </div>
+
+      <!-- Initial State -->
+      <div
+        *ngIf="!isSearching"
+        class="card p-12 text-center bg-gray-50 border-dashed"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="mx-auto h-16 w-16 text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+        <h3 class="mt-4 text-lg font-semibold text-gray-700">
+          Search Your Candidate Pool
+        </h3>
+        <p class="mt-2 text-sm text-gray-500">
+          Use the filters on the left to search for candidates by name, skills,
+          experience, and more.
+        </p>
+      </div>
+
+      <!-- Search Results Cards -->
+      <div
+        *ngIf="isSearching && !loadingSearch && searchResults.length > 0"
+        class="space-y-3"
+      >
+        <div
+          *ngFor="let candidate of paginatedResults; let i = index"
+          class="card p-4 hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
+          [ngClass]="getCardRowClass(i)"
+          (click)="navigateToCandidate(candidate.id)"
+        >
+          <div class="flex justify-between items-start gap-4">
+            <!-- Left Section: Name, Professional Info, Skills -->
+            <div class="flex-1">
+              <!-- Candidate Name -->
+              <h3 class="text-lg font-bold text-primary hover:underline mb-3">
+                {{ candidate.firstName }} {{ candidate.lastName || "" }}
+              </h3>
+
+              <!-- Professional Info - Stacked Vertically -->
+              <div class="space-y-2 mb-3">
+                <div *ngIf="candidate.currentDesignation">
+                  <span class="text-xs text-gray-500 mr-2">Current Role:</span>
+                  <span class="text-sm font-medium">{{
+                    candidate.currentDesignation
+                  }}</span>
+                </div>
+                <div *ngIf="candidate.currentOrg">
+                  <span class="text-xs text-gray-500 mr-2">Company:</span>
+                  <span class="text-sm font-medium">{{
+                    candidate.currentOrg
+                  }}</span>
+                </div>
+                <div *ngIf="candidate.currentCtc">
+                  <span class="text-xs text-gray-500 mr-2">Current CTC:</span>
+                  <span class="text-sm font-medium"
+                    >₹{{ candidate.currentCtc }} LPA</span
+                  >
+                </div>
+              </div>
+
+              <!-- Skills - fixed width badges to keep right section aligned -->
+              <div
+                class="flex flex-wrap gap-1.5"
+                style="max-height: 3.5rem; overflow: hidden"
+              >
+                <span
+                  *ngFor="
+                    let skill of getLimitedSkills(candidate.keySkills);
+                    let i = index
+                  "
+                  class="inline-block px-2.5 py-1 rounded-full text-xs font-medium truncate text-center"
+                  style="width: 80px; flex-shrink: 0"
+                  [ngClass]="getSkillColorClass(i)"
+                  [title]="skill"
+                >
+                  {{ skill }}
+                </span>
+                <span
+                  *ngIf="hasMoreSkills(candidate.keySkills)"
+                  class="inline-block px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700 flex-shrink-0"
+                >
+                  +{{ candidate.keySkills.length - 4 }} more
+                </span>
+              </div>
+            </div>
+
+            <!-- Right Section: Profile Initials + Contact Info -->
+            <div class="flex flex-col items-center gap-2 min-w-[120px]">
+              <!-- Profile Picture Placeholder with Initials -->
+              <div
+                class="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center text-lg font-bold"
+              >
+                {{ getInitials(candidate.firstName, candidate.lastName) }}
+              </div>
+
+              <!-- Contact Info -->
+              <div class="text-center space-y-1">
+                <div *ngIf="candidate.phone" class="text-xs text-gray-600">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="inline mr-1"
+                  >
+                    <path
+                      d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+                    ></path>
+                  </svg>
+                  {{ candidate.phone }}
+                </div>
+                <div
+                  *ngIf="candidate.email"
+                  class="text-xs text-gray-600 truncate"
+                  style="max-width: 120px"
+                  [title]="candidate.email"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="inline mr-1 flex-shrink-0"
+                  >
+                    <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                  </svg>
+                  {{ candidate.email }}
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex flex-col gap-2 mt-2 w-full">
+                <button
+                  (click)="$event.stopPropagation(); onAddToJob(candidate)"
+                  class="btn btn-sm px-3 py-1.5 rounded text-sm font-medium hover:shadow-md"
+                  style="background-color: #ffc107; color: #000; width: 200px"
+                  title="Create application for this candidate"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="inline mr-1"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Add to Job
+                </button>
+                <button
+                  (click)="
+                    $event.stopPropagation(); onViewApplications(candidate)
+                  "
+                  class="btn btn-sm btn-outline px-3 py-1.5 text-sm text-center"
+                  style="width: 200px"
+                  title="View applications for this candidate"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="inline mr-1"
+                  >
+                    <path
+                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                    ></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                  View Applications
+                </button>
+                <a
+                  [routerLink]="['/candidates', candidate.id]"
+                  class="btn btn-sm btn-outline px-3 py-1.5 text-sm text-center"
+                  style="width: 200px"
+                  (click)="$event.stopPropagation()"
+                >
+                  View Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div
+        *ngIf="
+          isSearching &&
+          !loadingSearch &&
+          searchResults.length > 0 &&
+          totalPages > 1
+        "
+        class="flex items-center justify-between mt-4 px-2"
+      >
+        <div class="text-sm text-gray-500">
+          Showing {{ showingFrom }}–{{ showingTo }} of
+          {{ searchResults.length }}
+        </div>
+        <div class="flex gap-2">
+          <button
+            (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            class="btn btn-sm btn-outline px-3 py-1"
+            [ngClass]="{ 'opacity-50 cursor-not-allowed': currentPage === 1 }"
+          >
+            Previous
+          </button>
+          <button
+            *ngFor="let page of getPageNumbers()"
+            (click)="goToPage(page)"
+            class="btn btn-sm px-3 py-1"
+            [ngClass]="currentPage === page ? 'btn-primary' : 'btn-outline'"
+          >
+            {{ page }}
+          </button>
+          <button
+            (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            class="btn btn-sm btn-outline px-3 py-1"
+            [ngClass]="{
+              'opacity-50 cursor-not-allowed': currentPage === totalPages,
+            }"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+
+      <!-- No Results State -->
+      <div
+        *ngIf="!loadingSearch && searchResults.length === 0 && isSearching"
+        class="card p-12 text-center"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="mx-auto h-16 w-16 text-gray-300"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <h3 class="mt-4 text-lg font-semibold text-gray-700">
+          No candidates found
+        </h3>
+        <p class="mt-2 text-sm text-gray-500">
+          Try adjusting your search criteria or clear filters to start fresh.
+        </p>
+        <button (click)="clearSearch()" class="btn btn-outline mt-4">
+          Clear All Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add to Job Modal -->
+  <div
+    *ngIf="showAddToJobModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    (click)="closeModal()"
+  >
+    <div
+      class="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Add Candidate to Job</h2>
+        <button
+          (click)="closeModal()"
+          class="text-gray-500 hover:text-gray-700 text-2xl"
+        >
+          &times;
+        </button>
+      </div>
+
+      <form [formGroup]="addToJobForm" (ngSubmit)="submitAddToJob()">
+        <div class="space-y-4">
+          <div class="form-group">
+            <label class="form-label font-semibold">Select Job *</label>
+            <select
+              formControlName="jobId"
+              class="form-control w-full border rounded px-3 py-2"
+              [ngClass]="{ 'border-red-500': submitted && f['jobId'].errors }"
+            >
+              <option value="">Choose a job...</option>
+              <option *ngFor="let job of jobs$ | async" [value]="job.id">
+                {{ job.roleTitle }} - {{ job.clientName }}
+              </option>
+            </select>
+            <div
+              *ngIf="submitted && f['jobId'].errors"
+              class="text-red-500 text-sm mt-1"
+            >
+              Job is required
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="form-group">
+              <label class="form-label font-semibold"
+                >Relevant Experience (years)</label
+              >
+              <input
+                type="number"
+                formControlName="relevantExperience"
+                class="form-control w-full border rounded px-3 py-2"
+                step="0.5"
+                min="0"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label font-semibold">Current CTC (LPA)</label>
+              <input
+                type="number"
+                formControlName="currentCtc"
+                class="form-control w-full border rounded px-3 py-2"
+                step="0.5"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="form-group">
+              <label class="form-label font-semibold">Expected CTC (LPA)</label>
+              <input
+                type="number"
+                formControlName="expectedCtc"
+                class="form-control w-full border rounded px-3 py-2"
+                step="0.5"
+                min="0"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label font-semibold">Notice Period</label>
+              <input
+                type="text"
+                formControlName="noticePeriod"
+                class="form-control w-full border rounded px-3 py-2"
+                placeholder="e.g., 30 days"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="form-group">
+              <label class="form-label font-semibold">Recruiter Status</label>
+              <select
+                formControlName="recruiterStatus"
+                class="form-control w-full border rounded px-3 py-2"
+              >
+                <option
+                  *ngFor="let status of recruiterStatuses"
+                  [value]="status"
+                >
+                  {{ status }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div
+            *ngIf="addToJobForm.get('recruiterStatus')?.value === 'Sourced'"
+            class="grid grid-cols-2 gap-4"
+          >
+            <div class="form-group">
+              <label class="form-label font-semibold">Application Status</label>
+              <select
+                formControlName="applicationStatus"
+                class="form-control w-full border rounded px-3 py-2"
+                [disabled]="true"
+              >
+                <option value="Sourced">Sourced</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label font-semibold">Comments</label>
+            <textarea
+              formControlName="comments"
+              class="form-control w-full border rounded px-3 py-2"
+              rows="3"
+              placeholder="Add any comments or notes..."
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6">
+          <button
+            type="button"
+            (click)="closeModal()"
+            class="btn btn-outline px-4 py-2"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn px-4 py-2 text-white font-semibold"
+            style="background-color: #ffc107"
+            [disabled]="loading"
+          >
+            {{ loading ? "Creating..." : "Create Application" }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Applications Modal -->
+  <div
+    *ngIf="showViewAppsModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    (click)="closeViewAppsModal()"
+  >
+    <div
+      class="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">
+          Applications for {{ selectedCandidate?.firstName }}
+          {{ selectedCandidate?.lastName }}
+        </h2>
+        <button
+          (click)="closeViewAppsModal()"
+          class="text-gray-500 hover:text-gray-700 text-2xl"
+        >
+          &times;
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div
+        *ngIf="loadingApps"
+        class="flex flex-col items-center justify-center p-12"
+      >
+        <div class="spinner"></div>
+        <p class="mt-4 text-gray-600 animate-pulse">Loading applications...</p>
+      </div>
+
+      <!-- Error State -->
+      <div
+        *ngIf="appsFetchError && !loadingApps"
+        class="card p-8 text-center border-red-200 bg-red-50"
+      >
+        <h3 class="text-lg font-bold text-red-700 mb-2">
+          Unable to load applications
+        </h3>
+        <p class="text-red-600 mb-4">
+          There was an error connecting to the server.
+        </p>
+        <button (click)="closeViewAppsModal()" class="btn btn-outline">
+          Close
+        </button>
+      </div>
+
+      <!-- Applications Table -->
+      <div *ngIf="!loadingApps && !appsFetchError">
+        <div
+          *ngIf="candidateApplications.length > 0; else noApps"
+          class="card p-0"
+        >
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Job Role</th>
+                <th>Client</th>
+                <th>Job Code</th>
+                <th>Status</th>
+                <th>Shared Date</th>
+                <th>Sourced By</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let app of candidateApplications; let i = index"
+                [ngClass]="i % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
+              >
+                <td>{{ app.jobRoleTitle }}</td>
+                <td>{{ app.clientName }}</td>
+                <td>{{ app.jobCode }}</td>
+                <td>
+                  <span
+                    class="inline-block px-3 py-1 rounded-full text-xs font-semibold"
+                    [ngClass]="getAppStatusColorClass(app.status)"
+                  >
+                    {{ app.status }}
+                  </span>
+                </td>
+                <td>{{ app.sharedDate | date: "MMM d, y" }}</td>
+                <td>{{ app.sourcedByName }}</td>
+                <td>
+                  <a
+                    [routerLink]="['/applications', app.id]"
+                    class="btn btn-sm btn-outline"
+                    (click)="$event.stopPropagation()"
+                  >
+                    View Details
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ng-template #noApps>
+          <div class="card p-12 text-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="mx-auto h-16 w-16 text-gray-300"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <h3 class="mt-4 text-lg font-semibold text-gray-700">
+              No Applications Yet
+            </h3>
+            <p class="mt-2 text-sm text-gray-500">
+              This candidate has not been applied to any jobs yet.
+            </p>
+          </div>
+        </ng-template>
+      </div>
     </div>
   </div>
 </div>

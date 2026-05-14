@@ -1,3 +1,4 @@
+// ---------------------------------- Base Model Interfaces --------------------------------------
 export interface Job {
   id: number;
   jobCode: string;
@@ -84,15 +85,9 @@ export interface User {
   assignedJobs?: Job[];
 }
 
-export interface UserMinimum {
-  id: number;
-  fullName: string;
-  role: UserRole;
-  mustChangePassword: boolean;
-  isFirstLogin: boolean;
-  requirePasswordReset: boolean;
-}
+// ------------------------------ END: Base Model Interfaces ---------------------------------
 
+// ------------------------------ START: Enum interfaces -------------------------------------
 export enum ApplicationStatus {
   Sourced = 'Sourced',
   Shared = 'Shared',
@@ -102,40 +97,71 @@ export enum ApplicationStatus {
   Joined = 'Joined',
 }
 
+export enum RecruiterStatus {
+  CallBack = 'Call back',
+  Sourced = 'Sourced',
+  DNP = 'DNP',
+  RecentSwitch = 'Recent Switch',
+  NLFC = 'Not looking for change',
+  NotInterested = 'Not interested',
+  CriteriaMismatch = 'Criteria mismatch',
+}
+
 export enum UserRole {
   Admin = 'Admin',
   Manager = 'Manager',
   Recruiter = 'Recruiter',
   TeamLead = 'TeamLead',
 }
+// END: Enum interfaces
 
+// --------------------------------START: Application Interfaces------------------------------
 export interface ApplicationCreate {
-  job_id: number;
-  candidate_id: number;
-  sourced_by_id: number;
-  total_experience: number;
-  relevant_experience: number;
-  current_ctc: string;
-  expected_ctc: string;
-  notice_period: string;
-  current_location: string;
-  resume_url: string;
-  dynamic_data: Record<string, any>;
-  notes?: string;
+  candidateId: number;
+  jobId: number;
+  totalExperience?: number;
+  relevantExperience?: number;
+  currentCtc?: number;
+  expectedCtc?: number;
+  noticePeriod?: string;
+  comments?: string;
+  status: ApplicationStatus;
 }
 
 export interface ApplicationSummary {
   id: number;
-  candidateId: number;
-  candidateName: string; // Injected by Backend Join
-  sourcedByName: string; // Injected by Backend Join
-  status: ApplicationStatus;
-  createdDate: string | Date; // Sourced Date
+  status: string;
+  sharedDate: Date; // Mapping datetime to the native JS Date object
+  candidateName: string;
+  candidatePhone: string;
+  jobCode: string;
+  clientName: string;
+  jobRoleTitle: string;
+  sourcedByName: string;
 }
 
-export interface CandidateRead {
+export interface ApplicationDetailRead {
   id: number;
-  fullName: string;
+  status: ApplicationStatus;
+  lastStatusUpdate: Date;
+  comments?: string;
+
+  // Snapshot of professional details at time of application
+  totalExperience?: number;
+  relevantExperience?: number;
+  currentCtc?: number;
+  expectedCtc?: number;
+  noticePeriod?: string;
+
+  // Hydrated Objects
+  candidate: CandidateDetailsRead;
+  sourcedBy: UserRead;
+
+  /**
+   * RUNTIME CALCULATION
+   * Derived field, usually a pre-signed S3/Cloud Storage URL
+   */
+  resumeSignedUrl?: string;
 }
 
 export interface ApplicationRead {
@@ -144,9 +170,138 @@ export interface ApplicationRead {
   candidateName?: string;
   status: ApplicationStatus;
   sourcedByName?: string;
-  createdDate: Date | string;
+  sharedDate: Date | string;
+}
+// --------------------------END: Application interfaces--------------------------------------
+
+/**
+ * ============================================================
+ * CALL LOG MODELS
+ * ============================================================
+ */
+
+export interface CallLogCreate {
+  candidateId: number;
+  // userId: number;
+  associatedJobId: number;
+  applicationId?: number;
+  recruiterStatus: RecruiterStatus; // Assuming this enum is defined elsewhere
+  comments?: string;
 }
 
+export interface CallLogRead {
+  id: number;
+  candidateId: number;
+  userId: number;
+  associatedJobId: number;
+  applicationId?: number;
+  recruiterStatus: string;
+  comments?: string;
+  createdAt: Date;
+
+  /** * UI Flattened Fields
+   * These are populated by the backend @model_validator
+   */
+  candidateName: string;
+  candidatePhone: string;
+  recruiterName: string;
+  jobRole?: string;
+  clientName?: string;
+}
+
+export interface CallLogSummary {
+  recruiterName: string;
+  date: string; // Python 'date' serializes to "YYYY-MM-DD" string
+  clientName: string;
+  jobRole: string;
+  totalCalls: number;
+  totalSourced: number;
+}
+
+// --------------------------START: Candidate interfaces--------------------------------------
+interface SkillRead {
+  id: number;
+  name: string;
+}
+
+export interface CandidateListRead {
+  id: number;
+  firstName: string;
+  lastName?: string;
+  email?: string;
+  currentOrg?: string;
+  currentDesignation?: string;
+  totalYearsExp?: number;
+
+  // Skills
+  skills: SkillRead[];
+
+  fullName: string;
+  keySkills: string[];
+
+  // Meta field
+  createdAt: Date;
+}
+
+export interface CandidateDetailsRead extends CandidateListRead {
+  // Basic info
+  phone: string;
+  gender?: string;
+  dob?: string;
+
+  // Professional snapshot
+  currentLocation?: string;
+
+  // Education
+  latestDegree?: string;
+  latestSpecialization?: string;
+  educationCompletionYear?: number;
+
+  // Compensation and timing
+  currentCtc?: number;
+  expectedCtc?: number;
+  noticePeriod?: number;
+
+  // Employment status
+  isCurrentlyWorking: boolean;
+  lastWorkingDay?: Date;
+
+  // File
+  resumeUrl?: string;
+
+  // Metadata
+  createdAt: Date;
+  updatedAt: Date;
+  createdById: number;
+  updatedById?: number;
+}
+// --------------------------END: Candidate interfaces----------------------------------------
+
+// --------------------------START: User interface--------------------------------------------
+export interface UserRead {
+  id: number;
+  fullName: string;
+  email: string; // EmailStr maps to string
+  phone: string;
+  role: UserRole;
+  isActive: boolean;
+
+  mustChangePassword: boolean;
+  isFirstLogin: boolean;
+  managerId: number;
+}
+
+export interface UserMinimum {
+  id: number;
+  fullName: string;
+  role: UserRole;
+  mustChangePassword: boolean;
+  isFirstLogin: boolean;
+  requirePasswordReset: boolean;
+}
+// --------------------------END: User interfaces----------------------------------------
+
+// --------------------------START: Job interfaces----------------------------------------
 export interface JobRead {
   id: number;
   jobCode: string;
@@ -166,13 +321,8 @@ export interface JobRead {
   jdStoragePath?: string;
 }
 
-// Composite Schemas
 export interface JobReadWithApplications extends JobRead {
   applications: ApplicationRead[];
-}
-
-export interface ApplicationReadWithCandidate extends ApplicationRead {
-  candidate: CandidateRead;
 }
 
 export interface JobCreate {
@@ -190,49 +340,10 @@ export interface JobCreate {
   trackerHeaders: string[];
 }
 
-// Matches: ApplicationWithCandidateCreate
-export interface ApplicationWithCandidateCreate {
-  // Candidate/Contact Details
-  fullName: string;
-  email: string;
-  phone: string;
-
-  // Application Specifics
-  jobId: number;
-  totalExperience: number;
-  relevantExperience: number;
-  currentCtc: string;
-  expectedCtc: string;
-  noticePeriod: string;
-  currentLocation: string;
-  resumeUrl: string; // S3 Link
-  dynamicData: Record<string, any>;
-  notes?: string;
-}
-
-// Matches backend: ApplicationListRead
-export interface ApplicationListRead {
-  id: number;
-  candidateId: number;
-  fullName: string; // From Candidate.full_name
-  phone: string | null; // From ContactDetail.value (Primary Phone)
-  email: string | null; // From ContactDetail.value (Primary Email)
-  sourcedByName: string; // From User.full_name (The Recruiter)
-  createdDate: Date | string; // Sourced On date
-  clientName: string; // From Job.client_name
-  roleTitle: string; // From Job.role_title
-  totalExperience: number;
-  relevantExperience: number;
-  currentCtc: string;
-  expectedCtc: string;
-  noticePeriod: string;
-  resumeUrl: string;
-  status: ApplicationStatus;
-}
-
 export interface JobReadWithCount extends JobRead {
   appCount: number; // Came from app_count via interceptor
 }
+// --------------------------END: Job interfaces----------------------------------------
 
 // ---------------------- RESPONSE TYPES -------------------------
 export interface APIResponse {

@@ -1,17 +1,15 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Observable, switchMap, map, take, combineLatest } from 'rxjs';
+import { Observable, switchMap, map, catchError, of } from 'rxjs';
 
 import { JobsService } from '../../services/jobs.service';
 import { ApplicationService } from '../../services/application.service';
 import {
-  Job,
-  Application,
   ApplicationStatus,
   JobReadWithApplications,
-  ApplicationSummary,
+  ApplicationDetailRead,
   ApplicationRead,
 } from '../../models';
 
@@ -29,6 +27,7 @@ export class JobDetailComponent implements OnInit {
 
   // We only need one primary stream because Job now includes the tracker applications
   job$: Observable<JobReadWithApplications | undefined>;
+  fetchError = false; // Add this flag
 
   readonly statuses: ApplicationStatus[] = [
     ApplicationStatus.Sourced,
@@ -49,7 +48,17 @@ export class JobDetailComponent implements OnInit {
 
     // Fetch the Job. Our backend Join ensures job.applications
     // now contains candidate_name and sourced_by_name.
-    this.job$ = jobId$.pipe(switchMap((id) => this.jobsService.getJob(id)));
+    this.job$ = jobId$.pipe(
+      switchMap((id) =>
+        this.jobsService.getJob(id).pipe(
+          catchError((err) => {
+            this.fetchError = true;
+            console.error(err);
+            return of(undefined);
+          }),
+        ),
+      ),
+    );
   }
 
   ngOnInit(): void {}
@@ -93,7 +102,13 @@ export class JobDetailComponent implements OnInit {
 
   private refreshJobData() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.job$ = this.jobsService.getJob(id);
+    this.fetchError = false;
+    this.job$ = this.jobsService.getJob(id).pipe(
+      catchError(() => {
+        this.fetchError = true;
+        return of(undefined);
+      }),
+    );
   }
 
   // --- Export Logic ---

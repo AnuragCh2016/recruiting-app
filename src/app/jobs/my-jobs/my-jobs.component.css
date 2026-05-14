@@ -1,0 +1,9 @@
+/* My Jobs Component Styles - Matching other job components */
+@import '../jobs-list/jobs-list.component.css';
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Use shared styles from jobs-list component */

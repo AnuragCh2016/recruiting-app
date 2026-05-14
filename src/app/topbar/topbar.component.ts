@@ -1,4 +1,10 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  inject,
+  HostListener,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -32,6 +38,12 @@ export class TopbarComponent implements OnInit, OnDestroy {
   searchResults: any[] = [];
   showResults = false;
   isSearching = false;
+
+  // My Desk Dropdown
+  showMyDeskDropdown = false;
+
+  // Management Dropdown
+  showManagementDropdown = false;
 
   // Pagination
   currentOffset = 0;
@@ -143,5 +155,43 @@ export class TopbarComponent implements OnInit, OnDestroy {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  toggleMyDeskDropdown(): void {
+    this.showMyDeskDropdown = !this.showMyDeskDropdown;
+    this.showManagementDropdown = false;
+  }
+
+  toggleManagementDropdown(): void {
+    this.showManagementDropdown = !this.showManagementDropdown;
+    this.showMyDeskDropdown = false;
+  }
+
+  closeDropdowns(): void {
+    this.showMyDeskDropdown = false;
+    this.showManagementDropdown = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onClickOutside(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+
+    // Check if click is inside My Desk dropdown or button
+    const myDeskDropdown = target.closest('.my-desk-dropdown');
+    const myDeskButton = target.closest('[data-dropdown="my-desk"]');
+
+    // Check if click is inside Management dropdown or button
+    const managementDropdown = target.closest('.management-dropdown');
+    const managementButton = target.closest('[data-dropdown="management"]');
+
+    // Close dropdowns if click is outside both
+    if (
+      !myDeskDropdown &&
+      !myDeskButton &&
+      !managementDropdown &&
+      !managementButton
+    ) {
+      this.closeDropdowns();
+    }
   }
 }

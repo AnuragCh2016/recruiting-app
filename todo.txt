@@ -1,14 +1,62 @@
-1. for candidates, phone number, exp, relevant exp, ctc, ectc, np, location, notes as a textarea -- rejected because something, interview feedback etc
-(any relevant details)
-2. for jobs, company, job code, JD etc
 
-3. look into file upload options. aws?
+dashboard metrics to show -
+1. active jobs - mandates they are working on
+2. my candidates - basically candidates sourced - on clicking, take to a page showing a view of application list
+3. In process - same as 2, filtered by status as 'In process'
+4. Select - similar to 3 (means offer has been released)
+5. Joined - similar to 3
+5. Billed amount this quarter - for a job, we usually have mandate of 8.33% of annual ctc of candidate, but can be different
 
-4. design database schema for candidates and jobs
-5. dashboard for recruiters to view candidates and jobs
-6. search and filter functionality for candidates and jobs
-7. user authentication and authorization for recruiters
--------------------------- basic mvp ---------------------------
-8. look into notification options. email? sms?
-9. admin dashboard for managing recruiters and overseeing activities
+distinguish between Execution (Recruiter), Strategy (TL/Manager), and Governance (Admin).
+Here is a breakdown of what to show on the dashboard and how to structure your top bar:
+1. Dashboard Additions (Beyond the Tiles)
+While the tiles give you the "numbers," a dashboard needs Trends and Lists to be actionable.
+For the Recruiter (The "My Work" View)
+Daily Call Funnel: A small bar chart showing: Calls Made → Interested → Sourced. It helps them see their "conversion" rate for the day.
+Upcoming Interviews: A list of candidates scheduled for interviews today/tomorrow.
+Stagnant Applications: A list of candidates who haven't had a status change in >48 hours (to prevent "leakage" in the funnel).
 
+For the TL/Manager (The "Team Health" View)
+Recruiter Leaderboard: A simple ranking of who has the most "Sources" or "Interviews" this week. Great for team morale.
+Job Load Balance: A chart showing which jobs are over-serviced and which are being ignored.
+Yield Ratio: Which recruiter is actually closing vs. just sending a high volume of resumes.
+
+For the Admin/Owner (The "Revenue" View)
+Pipeline Value: A "Weighted Revenue" forecast. (e.g., if a candidate is at 'Offer' stage with a ₹10L CTC, that’s a potential ₹83k billing).
+Client Concentration: A pie chart showing which clients are giving the most business vs. which ones are just wasting the team's time with "tough-to-fill" roles.
+
+2. Organizing the Top Bar
+use Logical Grouping. "Work vs. Library" split.
+
+Left Side: The Engine (Daily Actions)
+Dashboard: Home base.
+
+My Desk (Dropdown):
+
+My Call Logs (The interaction history).
+
+My Applications (The "My Candidates" view you mentioned).
+
+My Interview Calendar.
+
+Jobs: The master list of mandates.
+
+Candidates: The master database (The "Talent Bank").
+
+Center: Global Search
+A search bar that handles Phone Number, Email, or Candidate Name. In a fast-paced agency, this is the most used tool.
+
+Right Side: The Command Center (Role-Dependent)
+Management (Dropdown - TL/Admin only):
+
+Team Activity: Real-time feed of what recruiters are doing.
+
+Job Allocation: Where you assign jobs to team members.
+
+Summary Reports: The hierarchical reports we built.
+
+Quick Add (+ icon):
+
+One-click to add a New Candidate or New Job.
+
+Profile/Settings: Personal info and password change.

@@ -1,22 +1,51 @@
 <div class="container p-4">
+  <!-- Full-screen loading overlay -->
+  <div
+    *ngIf="loading"
+    class="fixed inset-0 bg-white bg-opacity-90 z-50 flex flex-col items-center justify-center"
+  >
+    <div class="spinner"></div>
+    <p class="mt-4 text-sm font-semibold text-primary animate-pulse">
+      Creating candidate...
+    </p>
+  </div>
+
   <div class="mb-4">
     <a routerLink="/candidates" class="text-medium hover:underline text-sm"
       >Cancel</a
     >
   </div>
 
-  <div class="card max-w-2xl mx-auto">
+  <div class="card max-w-3xl mx-auto">
     <h2 class="mb-6 border-b pb-2">Add New Candidate</h2>
 
     <form [formGroup]="candidateForm" (ngSubmit)="onSubmit()">
-      <div class="grid grid-cols-2 gap-4">
-        <div class="form-group col-span-2">
-          <label class="form-label">Full Name *</label>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <div class="col-span-2">
+          <h3
+            class="text-sm font-bold uppercase text-gray-400 tracking-wider mb-2"
+          >
+            Personal Information
+          </h3>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">First Name *</label>
           <input
             type="text"
-            formControlName="fullName"
+            formControlName="firstName"
             class="form-control"
-            placeholder="e.g. John Doe"
+            placeholder="John"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input
+            type="text"
+            formControlName="lastName"
+            class="form-control"
+            placeholder="Doe"
           />
         </div>
 
@@ -26,7 +55,7 @@
             type="email"
             formControlName="email"
             class="form-control"
-            placeholder="e.g. john.doe@example.com"
+            placeholder="john.doe@example.com"
           />
         </div>
 
@@ -36,29 +65,65 @@
             type="text"
             formControlName="phone"
             class="form-control"
-            placeholder="e.g. +1-234-567-8900"
+            placeholder="+91 9876543210"
           />
         </div>
 
-        <div class="form-group col-span-2">
-          <label class="form-label">Job Applied For *</label>
-          <select formControlName="jobId" class="form-control">
-            <option value="">Select a job...</option>
-            <option *ngFor="let job of jobs$ | async" [value]="job.id">
-              {{ job.roleTitle }} - {{ job.clientName }} ({{ job.jobCode }})
-            </option>
+        <div class="form-group">
+          <label class="form-label">Gender</label>
+          <select formControlName="gender" class="form-control">
+            <option value="">Select...</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
           </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Current Location *</label>
+          <input
+            type="text"
+            formControlName="currentLocation"
+            class="form-control"
+            placeholder="e.g. Kolkata"
+          />
+        </div>
+
+        <div class="col-span-2 mt-4">
+          <h3
+            class="text-sm font-bold uppercase text-gray-400 tracking-wider mb-2"
+          >
+            Professional Experience
+          </h3>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Current Organization</label>
+          <input
+            type="text"
+            formControlName="currentOrg"
+            class="form-control"
+            placeholder="Company Name"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Current Designation</label>
+          <input
+            type="text"
+            formControlName="currentDesignation"
+            class="form-control"
+            placeholder="Role Title"
+          />
         </div>
 
         <div class="form-group">
           <label class="form-label">Total Experience (Years) *</label>
           <input
             type="number"
-            formControlName="totalExperience"
+            formControlName="totalYearsExp"
             class="form-control"
-            placeholder="e.g. 5"
-            min="0"
-            step="0.5"
+            step="0.1"
           />
         </div>
 
@@ -68,29 +133,168 @@
             type="number"
             formControlName="relevantExperience"
             class="form-control"
-            placeholder="e.g. 3"
-            min="0"
-            step="0.5"
+            step="0.1"
           />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Key Skills</label>
+          <input
+            type="text"
+            formControlName="keySkills"
+            class="form-control"
+            placeholder="Java, Angular, FastAPI..."
+          />
+        </div>
+
+        <div class="col-span-2 mt-4">
+          <h3
+            class="text-sm font-bold uppercase text-gray-400 tracking-wider mb-2"
+          >
+            Highest Education
+          </h3>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Latest Degree</label>
+          <input
+            type="text"
+            formControlName="latestDegree"
+            class="form-control"
+            placeholder="e.g. B.Tech"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Specialization</label>
+          <input
+            type="text"
+            formControlName="latestSpecialization"
+            class="form-control"
+            placeholder="e.g. CSE"
+          />
+        </div>
+
+        <div class="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-group">
+            <label class="form-label">Institute</label>
+            <input
+              type="text"
+              formControlName="educationInstitute"
+              class="form-control"
+              placeholder="e.g. IIT Delhi"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Year of Completion</label>
+            <input
+              type="number"
+              formControlName="educationCompletionYear"
+              class="form-control"
+              placeholder="e.g. 2020"
+            />
+          </div>
+        </div>
+
+        <div class="col-span-2 mt-4">
+          <h3
+            class="text-sm font-bold uppercase text-gray-400 tracking-wider mb-2"
+          >
+            Application & Compensation
+          </h3>
+        </div>
+
+        <div class="form-group col-span-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              formControlName="addToJob"
+              class="w-4 h-4 text-blue-600"
+            />
+            <span class="text-sm font-medium text-gray-700"
+              >Add candidate to job</span
+            >
+          </label>
+        </div>
+
+        <div *ngIf="showJobSection" class="col-span-2">
+          <div class="form-group">
+            <label class="form-label">Job Applied For *</label>
+            <select formControlName="jobId" class="form-control">
+              <option value="">Select a job...</option>
+              <option *ngFor="let job of jobs$ | async" [value]="job.id">
+                {{ job.roleTitle }} - {{ job.clientName }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Recruiter Status</label>
+            <select formControlName="recruiterStatus" class="form-control">
+              <option value="">Select status...</option>
+              <option *ngFor="let status of recruiterStatuses" [value]="status">
+                {{ status }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div *ngIf="showApplicationSection" class="col-span-2">
+          <div class="form-group">
+            <label class="form-label">Relevant Experience (Years) *</label>
+            <input
+              type="number"
+              formControlName="relevantExperience"
+              class="form-control"
+              step="0.1"
+            />
+          </div>
+        </div>
+
+        <div
+          *ngIf="jobHeaders.length > 0"
+          class="col-span-2 bg-blue-50/50 border border-blue-100 p-4 rounded-xl my-2"
+        >
+          <div class="flex items-center gap-2 mb-4">
+            <span class="block h-2 w-2 rounded-full bg-blue-500"></span>
+            <h3
+              class="text-xs font-bold uppercase text-blue-600 tracking-wider m-0"
+            >
+              Sourcing Tracker Custom Fields
+            </h3>
+          </div>
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 gap-4"
+            [formGroup]="dynamicDataGroup"
+          >
+            <div *ngFor="let header of jobHeaders" class="form-group">
+              <label class="form-label text-gray-600">{{ header }}</label>
+              <input
+                type="text"
+                [formControlName]="header"
+                class="form-control bg-white"
+                [placeholder]="'Enter ' + header"
+              />
+            </div>
+          </div>
         </div>
 
         <div class="form-group">
           <label class="form-label">Current CTC *</label>
           <input
-            type="text"
+            type="number"
             formControlName="currentCtc"
             class="form-control"
-            placeholder="e.g. 8 LPA"
           />
         </div>
 
         <div class="form-group">
-          <label class="form-label">Expected CTC *</label>
+          <label class="form-label">Expected CTC</label>
           <input
-            type="text"
+            type="number"
             formControlName="expectedCtc"
             class="form-control"
-            placeholder="e.g. 12 LPA"
           />
         </div>
 
@@ -104,24 +308,54 @@
           />
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Current Location *</label>
+        <div class="form-group flex items-center pt-6">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              formControlName="isCurrentlyWorking"
+              class="w-4 h-4 text-blue-600"
+            />
+            <span class="text-sm font-medium text-gray-700"
+              >Currently Working?</span
+            >
+          </label>
+        </div>
+
+        <div
+          *ngIf="!candidateForm.get('isCurrentlyWorking')?.value"
+          class="form-group"
+        >
+          <label class="form-label">Last Working Day</label>
           <input
-            type="text"
-            formControlName="currentLocation"
+            type="date"
+            formControlName="lastWorkingDay"
             class="form-control"
-            placeholder="e.g. Bangalore, India"
           />
         </div>
 
-        <div class="form-group col-span-2">
-          <label class="form-label">Resume URL</label>
-          <input
-            type="url"
-            formControlName="resumeUrl"
-            class="form-control"
-            placeholder="https://example.com/resume.pdf"
-          />
+        <div class="form-group col-span-2 mt-4">
+          <label class="form-label">Resume File * (only PDFs)</label>
+          <div class="flex flex-col gap-2">
+            <input
+              type="file"
+              (change)="onFileChange($event)"
+              class="form-control file:bg-blue-50 file:text-blue-700"
+              accept=".pdf"
+            />
+
+            <div
+              *ngIf="candidateForm.get('resumeFile')?.value as file"
+              class="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg"
+            >
+              <div class="bg-green-500 text-white rounded-full p-1">✓</div>
+              <div class="flex flex-col">
+                <span class="text-sm font-semibold text-green-800"
+                  >File Attached</span
+                >
+                <span class="text-xs text-green-600">{{ file.name }}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="form-group col-span-2">
@@ -130,21 +364,25 @@
             formControlName="notes"
             class="form-control"
             rows="3"
-            placeholder="Any additional notes about the candidate..."
           ></textarea>
         </div>
       </div>
 
       <div class="flex justify-end gap-4 mt-6 border-t pt-4">
-        <button type="button" routerLink="/candidates" class="btn btn-outline">
+        <button
+          type="button"
+          routerLink="/candidates"
+          class="btn btn-outline"
+          [disabled]="loading"
+        >
           Cancel
         </button>
         <button
           type="submit"
           class="btn btn-primary"
-          [disabled]="candidateForm.invalid"
+          [disabled]="candidateForm.invalid || loading"
         >
-          Add Candidate
+          {{ loading ? "Adding..." : "Add Candidate" }}
         </button>
       </div>
     </form>
